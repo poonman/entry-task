@@ -8,6 +8,7 @@ import (
 )
 
 type Connection struct {
+	id uint64
 	conn net.Conn
 	
 	opts *Options
@@ -15,15 +16,12 @@ type Connection struct {
 	seq uint64
 }
 
-func NewConnection(address string, opts ...Option) (c *Connection, err error) {
+func NewConnection(address string, opts *Options) (c *Connection, err error) {
 	c = &Connection{
 		conn: nil,
-		opts: &Options{},
+		opts: opts,
 	}
 
-	for _, o := range opts {
-		o(c.opts)
-	}
 
 	if c.opts.tlsConfig != nil {
 		//dialer := &net.Dialer{

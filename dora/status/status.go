@@ -35,6 +35,7 @@ const (
 	Internal Code = 5
 	Unauthenticated Code = 6
 	Unknown Code = 7
+	Unavailable Code = 8
 )
 
 var code2Str = map[Code]string{
@@ -46,6 +47,7 @@ var code2Str = map[Code]string{
 	Internal: "Internal",
 	Unauthenticated: "Unauthenticated",
 	Unknown: "Unknown",
+	Unavailable: "Unavailable",
 }
 func (c Code) String() string {
 	str, ok := code2Str[c]

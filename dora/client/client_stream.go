@@ -27,8 +27,9 @@ func defaultCallInfo() *callInfo {
 	return &callInfo{serializeType: proto.Name}
 }
 
-func NewStream(method string, cc *Connection) *Stream {
+func NewStream(ctx context.Context, method string, cc *Connection) *Stream {
 	s := &Stream{
+		ctx :ctx,
 		method:   method,
 		cc:       cc,
 		callInfo: defaultCallInfo(),

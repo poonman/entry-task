@@ -2,6 +2,7 @@ package kv
 
 import (
 	"context"
+	"github.com/poonman/entry-task/dora/client"
 	"github.com/poonman/entry-task/dora/server"
 	"github.com/poonman/entry-task/dora/status"
 )
@@ -12,6 +13,24 @@ type HelloReq struct {
 
 type HelloRsp struct {
 
+}
+
+type KvClient interface {
+	SayHello(ctx context.Context, in *HelloReq) (out *HelloRsp, err error)
+}
+
+type kvClient struct {
+	cc *client.Client
+}
+
+func (c *kvClient) SayHello(ctx context.Context, in *HelloReq) (out *HelloRsp, err error) {
+	out = &HelloRsp{}
+
+	err = c.cc.Invoke(ctx, "SayHello", in, out)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 type KvServer interface {

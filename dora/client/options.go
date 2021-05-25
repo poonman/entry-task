@@ -10,6 +10,8 @@ type Options struct {
 	tlsConfig *tls.Config
 
 	connectTimeout time.Duration
+
+	connSize int
 }
 
 type Option func(options *Options)

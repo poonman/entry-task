@@ -87,6 +87,12 @@ func (c *Client) releaseConn(conn *Connection) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
+	if len(c.connMap) > c.opts.connSize {
+		// todo: conn.Close()
+		// do not add to connMap
+		return
+	}
+
 	c.connMap[conn.id] = conn
 }
 

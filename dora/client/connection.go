@@ -2,8 +2,8 @@ package client
 
 import (
 	"bufio"
-	"github.com/poonman/entry-task/rpc/log"
-	"github.com/poonman/entry-task/rpc/protocol"
+	"github.com/poonman/entry-task/dora/log"
+	"github.com/poonman/entry-task/dora/protocol"
 	"net"
 )
 

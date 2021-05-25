@@ -3,7 +3,7 @@ package proto
 
 import (
 "fmt"
-	"github.com/poonman/entry-task/rpc/codec"
+	"github.com/poonman/entry-task/dora/codec"
 	"github.com/golang/protobuf/proto"
 )
 

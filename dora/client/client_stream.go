@@ -3,9 +3,9 @@ package client
 import (
 	"context"
 	"errors"
-	"github.com/poonman/entry-task/rpc/codec"
-	"github.com/poonman/entry-task/rpc/codec/proto"
-	"github.com/poonman/entry-task/rpc/protocol"
+	"github.com/poonman/entry-task/dora/codec"
+	"github.com/poonman/entry-task/dora/codec/proto"
+	"github.com/poonman/entry-task/dora/protocol"
 )
 
 var (

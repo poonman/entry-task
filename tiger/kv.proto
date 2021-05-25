@@ -1,0 +1,17 @@
+syntax="proto3";
+
+package kv;
+
+option go_package="kv";
+
+service KV {
+    rpc SayHello(HelloReq) returns (HelloRsp);
+};
+
+message HelloReq {
+    string name = 1;
+}
+
+message HelloRsp {
+    string msg = 2;
+}

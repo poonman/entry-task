@@ -30,7 +30,7 @@ type doraPlugin struct {
 
 // Name returns the name of this plugin, "doraPlugin".
 func (g *doraPlugin) Name() string {
-	return "doraPlugin"
+	return "dora"
 }
 
 // The names for packages imported in the generated code.
@@ -140,7 +140,10 @@ func (g *doraPlugin) generateDoraService(file *generator.FileDescriptor, service
 
 	g.P("type ", servName, "Client interface {")
 	for _, method := range service.Method {
-		g.P(method.GetName(), "(ctx context.Context, in *", method.GetInputType(), ") (out *", method.GetOutputType(), ", err error)")
+		//methName := generator.CamelCase(method.GetName())
+		inType := g.typeName(method.GetInputType())
+		outType := g.typeName(method.GetOutputType())
+		g.P(method.GetName(), "(ctx context.Context, in *", inType, ") (out *", outType, ", err error)")
 	}
 	g.P("}")
 
@@ -154,21 +157,29 @@ func (g *doraPlugin) generateDoraService(file *generator.FileDescriptor, service
 	g.P()
 
 	for _, method := range service.Method {
-		g.P("func (c *", lowerServName, "Client) ", method.GetName(),
-			"(ctx context.Context, in *", method.GetInputType(), ") (out *", method.GetOutputType(), ", err error) {")
-		g.P("out = &", method.GetOutputType(), "{}")
+		methName := generator.CamelCase(method.GetName())
+		inType := g.typeName(method.GetInputType())
+		outType := g.typeName(method.GetOutputType())
+
+		g.P("func (c *", lowerServName, "Client) ", methName,
+			"(ctx context.Context, in *", inType, ") (out *", outType, ", err error) {")
+		g.P("out = &", outType, "{}")
 		g.P()
-		g.P(`err = c.cc.Invoke(ctx, "`, method.GetName(), `", in, out)`)
+		g.P(`err = c.cc.Invoke(ctx, "`, methName, `", in, out)`)
 		g.P("if err != nil {")
 		g.P("return nil, err")
 		g.P("}")
 		g.P("return out, nil")
+		g.P("}")
 	}
 
 	// server
 	g.P("type ", servName, "Server interface {")
 	for _, method := range service.Method {
-		g.P(method.GetName(), "(ctx context.Context, in *", method.GetInputType(), ") (out *", method.GetOutputType(), ", err error)")
+		methName := generator.CamelCase(method.GetName())
+		inType := g.typeName(method.GetInputType())
+		outType := g.typeName(method.GetOutputType())
+		g.P(methName, "(ctx context.Context, in *", inType, ") (out *", outType, ", err error)")
 	}
 	g.P("mustEmbedUnimplemented", servName, "Server()")
 	g.P("}")
@@ -181,7 +192,10 @@ func (g *doraPlugin) generateDoraService(file *generator.FileDescriptor, service
 	g.P()
 
 	for _, method := range service.Method {
-		g.P("func (Unimplemented", servName, "Server) ", method.GetName(), "(context.Context, *", method.GetInputType(), ") (*", method.GetOutputType(), ", error) {")
+		methName := generator.CamelCase(method.GetName())
+		inType := g.typeName(method.GetInputType())
+		outType := g.typeName(method.GetOutputType())
+		g.P("func (Unimplemented", servName, "Server) ", methName, "(context.Context, *", inType, ") (*", outType, ", error) {")
 		g.P(`return nil, status.New(status.Unimplemented, "server is unimplemented")`)
 		g.P("}")
 		g.P()
@@ -196,22 +210,26 @@ func (g *doraPlugin) generateDoraService(file *generator.FileDescriptor, service
 	g.P("}")
 
 	for _, method := range service.Method {
-		g.P("func _", servName, "Server_", method.GetName(), "_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor server.Interceptor) (interface{}, error) {")
-		g.P("in := new(", method.GetInputType(), ")")
+		methName := generator.CamelCase(method.GetName())
+		inType := g.typeName(method.GetInputType())
+		//outType := g.typeName(method.GetOutputType())
+
+		g.P("func _", servName, "Server_", methName, "_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor server.Interceptor) (interface{}, error) {")
+		g.P("in := new(", inType, ")")
 		g.P("if err := dec(in); err != nil {")
 		g.P("return nil, err")
 		g.P("}")
 		g.P()
 		g.P("if interceptor == nil {")
-		g.P("return srv.(", servName, "Server).", method.GetName(), "(ctx, in)")
+		g.P("return srv.(", servName, "Server).", methName, "(ctx, in)")
 		g.P("}")
 		g.P()
 		g.P("info := &server.InterceptorServerInfo{")
 		g.P("Server:     srv,")
-		g.P(`Method: "`, method.GetName(), `",`)
+		g.P(`Method: "`, methName, `",`)
 		g.P("}")
 		g.P("handler := func(ctx context.Context, req interface{}) (interface{}, error) {")
-		g.P("return srv.(", servName, "Server).", method.GetName(), "(ctx, req.(*", method.GetInputType(), "))")
+		g.P("return srv.(", servName, "Server).", methName, "(ctx, req.(*", inType, "))")
 		g.P("}")
 		g.P("return interceptor(ctx, in, info, handler)")
 		g.P("}")
@@ -221,9 +239,12 @@ func (g *doraPlugin) generateDoraService(file *generator.FileDescriptor, service
 	g.P("var ", servName, "_ServiceDesc = &server.ServiceDesc{")
 	g.P("Methods: []server.MethodDesc{")
 	for _, method := range service.Method {
+		methName := generator.CamelCase(method.GetName())
+		//inType := g.typeName(method.GetInputType())
+		//outType := g.typeName(method.GetOutputType())
 		g.P("{")
-		g.P(`Name:    "`, method.GetName(), `",`)
-		g.P("Handler: _", servName, "Server_", method.GetName(), "_Handler,")
+		g.P(`Name:    "`, methName, `",`)
+		g.P("Handler: _", servName, "Server_", methName, "_Handler,")
 		g.P("},")
 	}
 	g.P("},")

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-
 )
 
 type defaultLogger struct {
@@ -64,4 +63,3 @@ func (l *defaultLogger) Panicf(format string, v ...interface{}) {
 func header(lvl, msg string) string {
 	return fmt.Sprintf("%s: %s", lvl, msg)
 }
-

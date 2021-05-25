@@ -2572,6 +2572,13 @@ func (g *Generator) generateEnumRegistration(enum *EnumDescriptor) {
 
 // And now lots of helper functions.
 
+func ToLowerFirstChar(str string) string {
+	for i, v := range str {
+		return string(unicode.ToLower(v)) + str[i+1:]
+	}
+	return ""
+}
+
 // Is c an ASCII lower-case letter?
 func isASCIILower(c byte) bool {
 	return 'a' <= c && c <= 'z'

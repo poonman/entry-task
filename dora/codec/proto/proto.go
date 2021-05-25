@@ -1,10 +1,9 @@
-
 package proto
 
 import (
-"fmt"
-	"github.com/poonman/entry-task/dora/codec"
+	"fmt"
 	"github.com/golang/protobuf/proto"
+	"github.com/poonman/entry-task/dora/codec"
 )
 
 // Name is the name registered for the proto compressor.
@@ -36,4 +35,3 @@ func (baseCodec) Unmarshal(data []byte, v interface{}) error {
 func (baseCodec) Name() string {
 	return Name
 }
-

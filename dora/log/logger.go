@@ -34,6 +34,7 @@ type Logger interface {
 func SetLogger(logger Logger) {
 	l = logger
 }
+
 //
 //func SetDummyLogger() {
 //	l = &dummyLogger{}
@@ -80,4 +81,3 @@ func Panic(v ...interface{}) {
 func Panicf(format string, v ...interface{}) {
 	l.Panicf(format, v...)
 }
-

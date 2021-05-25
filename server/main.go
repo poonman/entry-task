@@ -6,7 +6,7 @@ import (
 	"go.uber.org/dig"
 )
 
-func BuildContainer() *dig.Container{
+func BuildContainer() *dig.Container {
 	c := dig.New()
 
 	helper.MustContainerProvide(c, app.NewService)

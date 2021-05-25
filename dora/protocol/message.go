@@ -1,6 +1,5 @@
 package protocol
 
-
 import (
 	"encoding/binary"
 	"errors"
@@ -9,7 +8,7 @@ import (
 )
 
 var (
-	MaxMessageLength = uint32(64*1024) // 64KB
+	MaxMessageLength = uint32(64 * 1024) // 64KB
 )
 
 var (
@@ -19,7 +18,6 @@ var (
 var (
 	Magic byte = 'G'
 )
-
 
 type Message struct {
 	PkgHead *PkgHead
@@ -35,9 +33,9 @@ func (m *Message) Clone() *Message {
 
 	mm := &Message{
 		PkgHead: &PkgHead{
-			Head:                 &head,
-			Method:               m.PkgHead.Method,
-			Meta:                 m.PkgHead.Meta,
+			Head:   &head,
+			Method: m.PkgHead.Method,
+			Meta:   m.PkgHead.Meta,
 		},
 	}
 	return mm
@@ -119,7 +117,7 @@ func WriteMessage(w io.Writer, msg *Message) (err error) {
 		return
 	}
 
-	totalLen := 1+4+4+pkgLen+payloadLen
+	totalLen := 1 + 4 + 4 + pkgLen + payloadLen
 	data := make([]byte, 9, totalLen)
 	data[0] = Magic
 
@@ -132,7 +130,6 @@ func WriteMessage(w io.Writer, msg *Message) (err error) {
 	_, err = w.Write(data)
 	return
 }
-
 
 func checkMagic(magic byte) (err error) {
 	if magic != Magic {

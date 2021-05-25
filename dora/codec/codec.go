@@ -25,8 +25,7 @@ func RegisterCodec(codec Codec) {
 	registeredCodecs[typ] = codec
 }
 
-
-// GetCodec gets a registered Codec by content-subtype
+// GetCodec gets a registered Codec by serialize-type
 func GetCodec(typ string) Codec {
 	return registeredCodecs[typ]
 }

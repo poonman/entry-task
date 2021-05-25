@@ -4,11 +4,11 @@ import (
 	"fmt"
 )
 
-
 type Status struct {
-	Code Code
+	Code    Code
 	Message string
 }
+
 func (s *Status) Error() string {
 	return fmt.Sprintf("rpc error: code=%s, message:%s", s.Code, s.Message)
 }
@@ -26,29 +26,31 @@ func Newf(code Code, format string, a ...interface{}) *Status {
 }
 
 type Code uint32
+
 const (
-	Ok Code = 0
-	Unimplemented Code = 1
-	BadRequest Code = 2
-	NotFound Code = 3
+	Ok               Code = 0
+	Unimplemented    Code = 1
+	BadRequest       Code = 2
+	NotFound         Code = 3
 	PermissionDenied Code = 4
-	Internal Code = 5
-	Unauthenticated Code = 6
-	Unknown Code = 7
-	Unavailable Code = 8
+	Internal         Code = 5
+	Unauthenticated  Code = 6
+	Unknown          Code = 7
+	Unavailable      Code = 8
 )
 
 var code2Str = map[Code]string{
-	Ok:"Ok",
-	Unimplemented: "Unimplemented",
-	BadRequest: "BadRequest",
-	NotFound: "NotFound",
+	Ok:               "Ok",
+	Unimplemented:    "Unimplemented",
+	BadRequest:       "BadRequest",
+	NotFound:         "NotFound",
 	PermissionDenied: "PermissionDenied",
-	Internal: "Internal",
-	Unauthenticated: "Unauthenticated",
-	Unknown: "Unknown",
-	Unavailable: "Unavailable",
+	Internal:         "Internal",
+	Unauthenticated:  "Unauthenticated",
+	Unknown:          "Unknown",
+	Unavailable:      "Unavailable",
 }
+
 func (c Code) String() string {
 	str, ok := code2Str[c]
 	if !ok {

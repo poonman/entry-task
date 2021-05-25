@@ -5,13 +5,21 @@ import (
 )
 
 type Options struct {
-
-
 	tlsConfig *tls.Config
 
 	Interceptor Interceptor
-	//readTimeout time.Duration
-	//writeTimeout time.Duration
 }
 
 type Option func(options *Options)
+
+func WithTlsConfig(config *tls.Config) Option {
+	return func(options *Options) {
+		options.tlsConfig = config
+	}
+}
+
+func WithInterceptor(i Interceptor) Option {
+	return func(options *Options) {
+		options.Interceptor = i
+	}
+}

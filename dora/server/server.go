@@ -27,11 +27,10 @@ const (
 
 var (
 	ErrUnsupportedMethod = errors.New("unsupported method")
-	ErrInternal = errors.New("internal error")
+	ErrInternal          = errors.New("internal error")
 
 	ErrServerClosed = errors.New("server closed")
 )
-
 
 type Server struct {
 	mu sync.RWMutex
@@ -41,7 +40,7 @@ type Server struct {
 	//seq           uint64
 
 	serverImpl interface{}
-	methods map[string]*MethodDesc
+	methods    map[string]*MethodDesc
 
 	opts *Options
 
@@ -67,7 +66,7 @@ func NewServer(opts ...Option) *Server {
 
 func (s *Server) Serve(address string) (err error) {
 	var (
-		ln net.Listener
+		ln        net.Listener
 		tempDelay time.Duration
 	)
 
@@ -159,12 +158,15 @@ func (s *Server) serveConn(conn net.Conn) {
 	w := bufio.NewWriter(conn)
 
 	for {
-		// todo: readTimeout?
 
 		ctx := context.Background()
 
 		req, err := s.recvRequest(r)
 		if err != nil {
+			if err == io.EOF {
+				// close connect
+				_ = conn.Close()
+			}
 			return
 		}
 
@@ -186,10 +188,10 @@ func (s *Server) serveConn(conn net.Conn) {
 
 func (s *Server) recvRequest(r io.Reader) (msg *protocol.Message, err error) {
 	msg, err = protocol.ReadMessage(r)
-	// unmask io.EOF
-	if err == io.EOF {
-		return msg, nil
-	}
+	//// unmask io.EOF
+	//if err == io.EOF {
+	//	return msg, nil
+	//}
 
 	return
 }
@@ -232,7 +234,7 @@ func (s *Server) handleRequest(ctx context.Context, reqMsg *protocol.Message) (r
 	}
 
 	var (
-		rsp interface{}
+		rsp     interface{}
 		payload []byte
 	)
 
@@ -279,10 +281,10 @@ func (s *Server) getCodec(typ string) codec.Codec {
 	return c
 }
 
-
 type ServiceRegistrar interface {
 	RegisterService(sd *ServiceDesc, impl interface{})
 }
+
 //==============
 
 func (s *Server) RegisterService(sd *ServiceDesc, impl interface{}) {

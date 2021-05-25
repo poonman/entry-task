@@ -8,7 +8,7 @@ import (
 )
 
 type Client struct {
-	mu sync.RWMutex
+	mu      sync.RWMutex
 	connMap map[uint64]*Connection
 
 	connId uint64
@@ -33,7 +33,7 @@ func NewClient(address string, opts ...Option) (c *Client) {
 	return c
 }
 
-func (c *Client) Invoke(ctx context.Context, method string, in, out interface{}) (err error){
+func (c *Client) Invoke(ctx context.Context, method string, in, out interface{}) (err error) {
 	var (
 		conn *Connection
 	)
@@ -49,6 +49,7 @@ func (c *Client) Invoke(ctx context.Context, method string, in, out interface{})
 
 	err = cs.SendMsg(in)
 	if err != nil {
+
 		return
 	}
 
@@ -96,7 +97,7 @@ func (c *Client) releaseConn(conn *Connection) {
 	c.connMap[conn.id] = conn
 }
 
-func (c *Client) newConn() (conn *Connection, err error){
+func (c *Client) newConn() (conn *Connection, err error) {
 
 	conn, err = NewConnection(c.address, c.opts)
 	if err != nil {

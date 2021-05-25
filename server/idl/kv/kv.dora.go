@@ -8,11 +8,9 @@ import (
 )
 
 type HelloReq struct {
-
 }
 
 type HelloRsp struct {
-
 }
 
 type KvClient interface {
@@ -35,6 +33,7 @@ func (c *kvClient) SayHello(ctx context.Context, in *HelloReq) (out *HelloRsp, e
 
 type KvServer interface {
 	SayHello(ctx context.Context, in *HelloReq) (out *HelloRsp, err error)
+	mustEmbedUnimplementedKvServer()
 }
 
 // UnimplementedKvServer must be embedded to have forward compatible implementations.
@@ -44,7 +43,7 @@ type UnimplementedKvServer struct {
 func (UnimplementedKvServer) SayHello(context.Context, *HelloReq) (*HelloRsp, error) {
 	return nil, status.New(status.Unimplemented, "server is unimplemented")
 }
-func (UnimplementedKvServer) mustEmbedUnimplementedGreeterServer() {}
+func (UnimplementedKvServer) mustEmbedUnimplementedKvServer() {}
 
 func RegisterKvServer(r server.ServiceRegistrar, impl KvServer) {
 	r.RegisterService(Kv_ServiceDesc, impl)
@@ -61,9 +60,8 @@ func _KvServer_SayHello_Handler(srv interface{}, ctx context.Context, dec func(i
 		return srv.(KvServer).SayHello(ctx, in)
 	}
 
-
 	info := &server.InterceptorServerInfo{
-		Server:     srv,
+		Server: srv,
 		Method: "SayHello",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
@@ -78,4 +76,5 @@ var Kv_ServiceDesc = &server.ServiceDesc{
 			Name:    "SayHello",
 			Handler: _KvServer_SayHello_Handler,
 		},
-	}}
+	},
+}

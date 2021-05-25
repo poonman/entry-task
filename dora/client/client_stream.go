@@ -11,9 +11,10 @@ import (
 var (
 	ErrInternal = errors.New("internal error")
 )
+
 type Stream struct {
-	method string
-	cc *Connection
+	method   string
+	cc       *Connection
 	callInfo *callInfo
 
 	ctx context.Context
@@ -29,7 +30,7 @@ func defaultCallInfo() *callInfo {
 
 func NewStream(ctx context.Context, method string, cc *Connection) *Stream {
 	s := &Stream{
-		ctx :ctx,
+		ctx:      ctx,
 		method:   method,
 		cc:       cc,
 		callInfo: defaultCallInfo(),
@@ -38,7 +39,7 @@ func NewStream(ctx context.Context, method string, cc *Connection) *Stream {
 	return s
 }
 
-func (s *Stream) SendMsg(req interface{}) (err error ){
+func (s *Stream) SendMsg(req interface{}) (err error) {
 	msg, err := s.prepareMsg(req)
 	if err != nil {
 		return
@@ -58,14 +59,14 @@ func (s *Stream) prepareMsg(req interface{}) (msg *protocol.Message, err error) 
 
 	msg = &protocol.Message{
 		PkgHead: &protocol.PkgHead{
-			Head:                 &protocol.Head{
-				Version:              0,
-				MessageType:          protocol.Head_Request,
-				SerializeType:        s.callInfo.serializeType,
-				Seq:                  s.cc.seq,
+			Head: &protocol.Head{
+				Version:       0,
+				MessageType:   protocol.Head_Request,
+				SerializeType: s.callInfo.serializeType,
+				Seq:           s.cc.seq,
 			},
-			Method:               s.method,
-			Meta:                 nil, // todo: auth
+			Method: s.method,
+			Meta:   nil, // todo: auth
 		},
 		Payload: payload,
 	}

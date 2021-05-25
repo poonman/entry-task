@@ -8,9 +8,9 @@ import (
 )
 
 type Connection struct {
-	id uint64
+	id   uint64
 	conn net.Conn
-	
+
 	opts *Options
 
 	seq uint64
@@ -21,7 +21,6 @@ func NewConnection(address string, opts *Options) (c *Connection, err error) {
 		conn: nil,
 		opts: opts,
 	}
-
 
 	if c.opts.tlsConfig != nil {
 		//dialer := &net.Dialer{
@@ -35,7 +34,7 @@ func NewConnection(address string, opts *Options) (c *Connection, err error) {
 			return
 		}
 
-		c.conn  = conn
+		c.conn = conn
 	}
 
 	return
@@ -47,7 +46,7 @@ func (c *Connection) sendRequest(msg *protocol.Message) (err error) {
 	return protocol.WriteMessage(w, msg)
 }
 
-func (c *Connection) recvResponse() (msg *protocol.Message, err error){
+func (c *Connection) recvResponse() (msg *protocol.Message, err error) {
 	r := bufio.NewReader(c.conn)
 
 	return protocol.ReadMessage(r)

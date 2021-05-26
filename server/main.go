@@ -25,7 +25,7 @@ func BuildContainer() *dig.Container {
 
 	helper.MustContainerProvide(c, app.NewService)
 	helper.MustContainerProvide(c, api.NewHandler)
-	helper.MustContainerProvide(c, interceptor.NewAuthInterceptor)
+	helper.MustContainerProvide(c, interceptor.NewInterceptor)
 
 	return c
 }
@@ -33,7 +33,7 @@ func BuildContainer() *dig.Container {
 func main() {
 	c := BuildContainer()
 
-	helper.MustContainerInvoke(c, func(conf *config.Config, interceptor *interceptor.AuthInterceptor, h kv.StoreServer) {
+	helper.MustContainerInvoke(c, func(conf *config.Config, interceptor *interceptor.Interceptor, h kv.StoreServer) {
 
 		log.Debug("start...")
 		//tlsConfig := conf.LoadTLSConfig()

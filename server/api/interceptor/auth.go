@@ -8,11 +8,26 @@ import (
 	"github.com/poonman/entry-task/server/app"
 )
 
-type AuthInterceptor struct {
+type Interceptor struct {
 	app *app.Service
 }
 
-func (a *AuthInterceptor) Auth(ctx context.Context, in, out interface{}, serverInfo *server.InterceptorServerInfo, handler server.Handler) (err error) {
+func (i *Interceptor) Do(ctx context.Context, in, out interface{}, serverInfo *server.InterceptorServerInfo, handler server.Handler) (err error) {
+
+	err = i.Limit(ctx, serverInfo)
+	if err != nil {
+		return err
+	}
+
+	err = i.Auth(ctx, serverInfo)
+	if err != nil {
+		return err
+	}
+
+	return handler(ctx, in, out)
+}
+
+func (i *Interceptor) Auth(ctx context.Context, serverInfo *server.InterceptorServerInfo) (err error) {
 	if serverInfo.Method == "ReadSecureMessage" || serverInfo.Method == "WriteSecureMessage" {
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
@@ -31,7 +46,7 @@ func (a *AuthInterceptor) Auth(ctx context.Context, in, out interface{}, serverI
 			return
 		}
 
-		err = a.app.Authenticate(username, token)
+		err = i.app.Authenticate(username, token)
 		if err != nil {
 			return
 		}
@@ -39,11 +54,16 @@ func (a *AuthInterceptor) Auth(ctx context.Context, in, out interface{}, serverI
 		return
 	}
 
-	return handler(ctx, in, out)
+	return nil
 }
 
-func NewAuthInterceptor(app *app.Service) (a *AuthInterceptor) {
-	return &AuthInterceptor{
+func (i *Interceptor) Limit(ctx context.Context, serverInfo *server.InterceptorServerInfo) (err error) {
+	// todo:
+	return nil
+}
+
+func NewInterceptor(app *app.Service) (a *Interceptor) {
+	return &Interceptor{
 		app: app,
 	}
 }

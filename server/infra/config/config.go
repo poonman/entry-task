@@ -39,11 +39,25 @@ func NewConfig() (c *Config){
 
 	c = &Config{}
 
-	err = lion.Get().Scan(c)
+	err = lion.Get("server").Scan(&c.ServerConfig)
 	if err != nil {
 		log.Errorf("Failed to scan config. err:[%v]", err)
 		return
 	}
+
+	err = lion.Get("redis").Scan(&c.RedisConfig)
+	if err != nil {
+		log.Errorf("Failed to scan config. err:[%v]", err)
+		return
+	}
+
+	err = lion.Get("mysql").Scan(&c.MySQLConfig)
+	if err != nil {
+		log.Errorf("Failed to scan config. err:[%v]", err)
+		return
+	}
+
+	log.Infof("NewConfig success. config:[%+v]", c)
 
 	return c
 }

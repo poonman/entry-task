@@ -132,6 +132,8 @@ func (s *Server) Serve(address string) (err error) {
 }
 
 func (s *Server) serveConn(conn net.Conn) {
+	log.Infof("[dora] serverConn begin... remote:[%s]", conn.RemoteAddr().String())
+
 	defer func() {
 		if err := recover(); err != nil {
 			const size = 64 << 10
@@ -175,6 +177,8 @@ func (s *Server) serveConn(conn net.Conn) {
 
 		ctx := context.Background()
 
+		log.Debugf("begin recv request...")
+
 		req, err := s.recvRequest(r)
 		if err != nil {
 			if err == io.EOF {
@@ -182,7 +186,10 @@ func (s *Server) serveConn(conn net.Conn) {
 				//_ = conn.Close()
 				// close on defer, just log here
 				log.Warnf("recv request error. ")
+			} else {
+				log.Errorf("Failed to recv request. err:[%v]", err)
 			}
+
 			return
 		}
 
@@ -203,19 +210,27 @@ func (s *Server) serveConn(conn net.Conn) {
 func (s *Server) recvRequest(r io.Reader) (msg *protocol.Message, err error) {
 	msg, err = protocol.ReadMessage(r)
 
+	log.Infof("[dora] recvRequest. msg:[%+v]", msg)
+
 	return
 }
 
 func (s *Server) sendResponse(rsp *protocol.Message, w io.Writer) (err error) {
+	log.Infof("[dora] sendResponse begin. rsp:[%+v]", rsp)
+
 	err = protocol.WriteMessage(w, rsp)
 	if err != nil {
 		return err
 	}
 
+	log.Infof("[dora] sendResponse success.")
 	return
 }
 
 func (s *Server) handleRequest(ctx context.Context, reqMsg *protocol.Message) (rspMsg *protocol.Message, err error) {
+
+	log.Infof("[dora] handleRequest begin. ")
+
 	method := reqMsg.PkgHead.Method
 
 	rspMsg = reqMsg.Clone()
@@ -262,6 +277,8 @@ func (s *Server) handleRequest(ctx context.Context, reqMsg *protocol.Message) (r
 	}
 
 	rspMsg.Payload = payload
+
+	log.Infof("handleRequest success.")
 
 	return
 }

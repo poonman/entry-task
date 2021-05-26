@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"github.com/golang/protobuf/proto"
+	"github.com/poonman/entry-task/dora/log"
 	"io"
 )
 
@@ -42,12 +43,15 @@ func (m *Message) Clone() *Message {
 }
 func ReadMessage(r io.Reader) (msg *Message, err error) {
 	magicBytes := make([]byte, 1)
-	lenBytes := make([]byte, 4)
+	pkgLenBytes := make([]byte, 4)
 
+	log.Debugf("magic...")
 	_, err = io.ReadFull(r, magicBytes)
 	if err != nil {
 		return
 	}
+
+	log.Debugf("magic:[%v]", magicBytes)
 
 	err = checkMagic(magicBytes[0])
 	if err != nil {
@@ -55,32 +59,38 @@ func ReadMessage(r io.Reader) (msg *Message, err error) {
 	}
 
 	// pkg
-	_, err = io.ReadFull(r, lenBytes)
+	log.Debugf("pkgLen...")
+	_, err = io.ReadFull(r, pkgLenBytes)
 	if err != nil {
 		return
 	}
 
-	pkgLen := binary.BigEndian.Uint32(lenBytes)
+	pkgLen := binary.BigEndian.Uint32(pkgLenBytes)
+	log.Debugf("pkgLen:%d", pkgLen)
 
 	// payload
-	_, err = io.ReadFull(r, lenBytes)
+	log.Debugf("payload len...")
+	_, err = io.ReadFull(r, pkgLenBytes)
 	if err != nil {
 		return
 	}
 
-	payloadLen := binary.BigEndian.Uint32(lenBytes)
+	payloadLen := binary.BigEndian.Uint32(pkgLenBytes)
+	log.Debugf("payloadLen:%d", payloadLen)
 
 	if pkgLen+payloadLen > MaxMessageLength {
 		err = ErrMessageTooLong
 		return
 	}
 
+	log.Debugf("pkg...")
 	pkgBytes := make([]byte, pkgLen)
 	_, err = io.ReadFull(r, pkgBytes)
 	if err != nil {
 		return
 	}
 
+	log.Debugf("payload")
 	payloadBytes := make([]byte, payloadLen)
 	_, err = io.ReadFull(r, payloadBytes)
 	if err != nil {
@@ -94,6 +104,7 @@ func ReadMessage(r io.Reader) (msg *Message, err error) {
 		return
 	}
 
+	log.Debugf("readMessage success...")
 	msg = &Message{
 		PkgHead: pkg,
 		Payload: payloadBytes,
@@ -103,6 +114,8 @@ func ReadMessage(r io.Reader) (msg *Message, err error) {
 }
 
 func WriteMessage(w io.Writer, msg *Message) (err error) {
+
+	log.Debugf("WriteMessage begin...")
 
 	pkgBytes, err := proto.Marshal(msg.PkgHead)
 	if err != nil {
@@ -127,7 +140,14 @@ func WriteMessage(w io.Writer, msg *Message) (err error) {
 	data = append(data, pkgBytes...)
 	data = append(data, msg.Payload...)
 
+	log.Debugf("data:[%+v]", data)
+
 	_, err = w.Write(data)
+	if err != nil {
+		return
+	}
+
+	log.Debugf("WriteMessage end...")
 	return
 }
 

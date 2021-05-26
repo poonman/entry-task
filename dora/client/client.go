@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"github.com/poonman/entry-task/dora/log"
 	"github.com/poonman/entry-task/dora/status"
 	"sync"
 	"sync/atomic"
@@ -19,16 +20,20 @@ type Client struct {
 }
 
 func NewClient(address string, opts ...Option) (c *Client) {
+	log.Info("[dora] NewClient begin...")
+
 	c = &Client{
 		mu:      sync.RWMutex{},
 		connMap: make(map[uint64]*Connection),
-		address: "",
+		address: address,
 		opts:    &Options{},
 	}
 
 	for _, o := range opts {
 		o(c.opts)
 	}
+
+	log.Infof("[dora] NewClient success. address:[%s]", address)
 
 	return c
 }

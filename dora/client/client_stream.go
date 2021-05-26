@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/poonman/entry-task/dora/codec"
 	"github.com/poonman/entry-task/dora/codec/proto"
+	"github.com/poonman/entry-task/dora/log"
 	"github.com/poonman/entry-task/dora/protocol"
 )
 
@@ -40,6 +41,8 @@ func NewStream(ctx context.Context, method string, cc *Connection) *Stream {
 }
 
 func (s *Stream) SendMsg(req interface{}) (err error) {
+	log.Info("[dora] SendMsg begin...")
+
 	msg, err := s.prepareMsg(req)
 	if err != nil {
 		return

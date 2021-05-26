@@ -156,6 +156,14 @@ func (g *doraPlugin) generateDoraService(file *generator.FileDescriptor, service
 
 	g.P()
 
+	g.P("func New", servName, "Client(cc client.Invoker) ", servName, "Client {")
+	g.P("return &",lowerServName,"Client{")
+	g.P("cc:cc,")
+	g.P("}")
+	g.P("}")
+
+	g.P()
+
 	for _, method := range service.Method {
 		methName := generator.CamelCase(method.GetName())
 		inType := g.typeName(method.GetInputType())

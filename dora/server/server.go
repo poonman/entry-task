@@ -164,7 +164,7 @@ func (s *Server) serveConn(conn net.Conn) {
 	}
 
 	r := bufio.NewReaderSize(conn, ReaderBufferSize)
-	w := bufio.NewWriter(conn)
+	//w := bufio.NewWriter(conn)
 
 	for {
 		// check if server is stopped
@@ -199,7 +199,7 @@ func (s *Server) serveConn(conn net.Conn) {
 			log.Errorf("Failed to handle request. err:[%v]", err)
 		}
 
-		err = s.sendResponse(rsp, w)
+		err = s.sendResponse(rsp, conn)
 		if err != nil {
 			log.Errorf("Failed to send response. err:[%v]", err)
 		}
@@ -215,7 +215,7 @@ func (s *Server) recvRequest(r io.Reader) (msg *protocol.Message, err error) {
 	return
 }
 
-func (s *Server) sendResponse(rsp *protocol.Message, w io.Writer) (err error) {
+func (s *Server) sendResponse(rsp *protocol.Message, w net.Conn /*w io.Writer*/) (err error) {
 	log.Infof("[dora] sendResponse begin. rsp:[%+v]", rsp)
 
 	err = protocol.WriteMessage(w, rsp)

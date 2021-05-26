@@ -41,9 +41,9 @@ func NewConnection(address string, opts *Options) (c *Connection, err error) {
 }
 
 func (c *Connection) sendRequest(msg *protocol.Message) (err error) {
-	w := bufio.NewWriter(c.conn)
+	//w := bufio.NewWriter(c.conn)
 
-	return protocol.WriteMessage(w, msg)
+	return protocol.WriteMessage(c.conn, msg)
 }
 
 func (c *Connection) recvResponse() (msg *protocol.Message, err error) {

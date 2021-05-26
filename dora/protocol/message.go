@@ -6,6 +6,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/poonman/entry-task/dora/log"
 	"io"
+	"net"
 )
 
 var (
@@ -113,7 +114,7 @@ func ReadMessage(r io.Reader) (msg *Message, err error) {
 	return
 }
 
-func WriteMessage(w io.Writer, msg *Message) (err error) {
+func WriteMessage(conn net.Conn, msg *Message) (err error) {
 
 	log.Debugf("WriteMessage begin...")
 
@@ -142,10 +143,12 @@ func WriteMessage(w io.Writer, msg *Message) (err error) {
 
 	log.Debugf("data:[%+v]", data)
 
-	_, err = w.Write(data)
+	_, err = conn.Write(data)
+	//_, err = w.Write(data)
 	if err != nil {
 		return
 	}
+
 
 	log.Debugf("WriteMessage end...")
 	return

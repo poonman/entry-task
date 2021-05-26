@@ -19,6 +19,8 @@ func (h *Handler) WriteSecureMessage(ctx context.Context, req *kv.WriteSecureMes
 	//	return
 	//}
 
+	rsp.Msg = "success"
+
 	return
 }
 
@@ -34,6 +36,8 @@ func (h *Handler) ReadSecureMessage(ctx context.Context, req *kv.ReadSecureMessa
 	//}
 	//
 	//rsp.Value = value
+
+	rsp.Value = "yyy"
 
 	return
 }

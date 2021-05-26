@@ -18,4 +18,12 @@ func (s *Service) RunJob() {
 	if err != nil {
 		log.Errorf("Failed to set key. err:[%v]", err)
 	}
+
+	v, err := s.kvGateway.Get(u, key)
+	if err != nil {
+		log.Errorf("Failed to get key. err:[%v]", err)
+		return
+	}
+
+	log.Debugf("v:[%v]", v)
 }

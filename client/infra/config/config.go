@@ -13,6 +13,7 @@ type Config struct {
 
 type ServerConfig struct {
 	Address string `yaml:"address"`
+	MaxActiveConn int `yaml:"maxActiveConn"`
 }
 
 type BenchmarkConfig struct {

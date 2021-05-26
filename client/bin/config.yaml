@@ -1,6 +1,7 @@
 server:
   address: 127.0.0.1:9000
+  maxActiveConn: 10
 
 benchmark:
-  concurrency: 12
-  requestNumPerConcurrency: 100
+  concurrency: 10
+  requestNumPerConcurrency: 1000

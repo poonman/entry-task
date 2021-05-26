@@ -74,7 +74,7 @@ func (g *kvGateway) Get(u *user.User, key string) (value string, err error) {
 func NewKvGateway(conf *config.Config) gateway.KvGateway {
 	log.Infof("NewKvGateway begin...")
 
-	cli := client.NewClient(conf.ServerConfig.Address, client.WithConnSize(10))
+	cli := client.NewClient(conf.ServerConfig.Address, client.WithConnSize(conf.ServerConfig.MaxActiveConn))
 
 	kvClient := kv.NewStoreClient(cli)
 

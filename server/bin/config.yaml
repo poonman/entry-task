@@ -1,5 +1,5 @@
 server:
-  listenAddress: 127.0.0.1:9000
+  listenAddress: 0.0.0.0:9000
   serverPemFilepath: server.pem
   serverKeyFilepath: server.key
   clientPemFilepath: client.pem

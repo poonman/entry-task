@@ -18,6 +18,6 @@ type InterceptorServerInfo struct {
 	Method string
 }
 
-type Handler func(ctx context.Context, req interface{}) (interface{}, error)
+type Handler func(ctx context.Context, in, out interface{}) (err error)
 
-type Interceptor func(ctx context.Context, req interface{}, serverInfo *InterceptorServerInfo, handler Handler) (interface{}, error)
+type Interceptor func(ctx context.Context, in, out interface{}, serverInfo *InterceptorServerInfo, handler Handler) (err error)

@@ -1,0 +1,1 @@
+protoc -I/Users/wen.pan/source/go/src/github.com/poonman/entry-task/tiger --go_out=./idl/kv --dora_out=./idl/kv kv.proto

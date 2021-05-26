@@ -3,13 +3,15 @@ package api
 import (
 	"context"
 	"github.com/poonman/entry-task/server/app"
+	"github.com/poonman/entry-task/server/idl/kv"
 )
 
 type Handler struct {
 	app *app.Service
+	kv.UnimplementedStoreServer
 }
 
-func (h *Handler) WriteSecureMessage(ctx context.Context, req interface{}, rsp interface{}) (err error) {
+func (h *Handler) WriteSecureMessage(ctx context.Context, req *kv.WriteSecureMessageReq) (rsp *kv.WriteSecureMessageRsp, err error) {
 	uid := uint64(0)
 	key := "key"
 	value := "value"
@@ -21,7 +23,7 @@ func (h *Handler) WriteSecureMessage(ctx context.Context, req interface{}, rsp i
 	return
 }
 
-func (h *Handler) ReadSecureMessage(ctx context.Context, req interface{}, rsp interface{}) (err error) {
+func (h *Handler) ReadSecureMessage(ctx context.Context, req *kv.ReadSecureMessageReq) (rsp *kv.ReadSecureMessageRsp, err error) {
 	var (
 		value string
 	)
@@ -32,7 +34,13 @@ func (h *Handler) ReadSecureMessage(ctx context.Context, req interface{}, rsp in
 		return
 	}
 
-	rsp = value
+	rsp.Value = value
 
 	return
+}
+
+func NewHandler(app *app.Service) kv.StoreServer {
+	h := &Handler{app: app}
+
+	return h
 }

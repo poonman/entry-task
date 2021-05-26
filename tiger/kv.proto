@@ -4,14 +4,25 @@ package kv;
 
 option go_package="kv";
 
-service KV {
-    rpc SayHello(HelloReq) returns (HelloRsp);
+service Store {
+    rpc WriteSecureMessage(WriteSecureMessageReq) returns (WriteSecureMessageRsp);
+
+    rpc ReadSecureMessage(ReadSecureMessageReq) returns (ReadSecureMessageRsp);
 };
 
-message HelloReq {
-    string name = 1;
+message WriteSecureMessageReq {
+    string key = 1;
+    string value = 2;
 }
 
-message HelloRsp {
+message WriteSecureMessageRsp {
     string msg = 2;
+}
+
+message ReadSecureMessageReq {
+    string key = 1;
+}
+
+message ReadSecureMessageRsp {
+    string value = 1;
 }

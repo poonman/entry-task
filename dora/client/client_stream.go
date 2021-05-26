@@ -5,6 +5,7 @@ import (
 	"github.com/poonman/entry-task/dora/codec"
 	"github.com/poonman/entry-task/dora/codec/proto"
 	"github.com/poonman/entry-task/dora/log"
+	"github.com/poonman/entry-task/dora/metadata"
 	"github.com/poonman/entry-task/dora/protocol"
 	"github.com/poonman/entry-task/dora/status"
 	"strconv"
@@ -69,6 +70,12 @@ func (s *Stream) prepareMsg(req interface{}) (msg *protocol.Message, err error) 
 			Meta:   nil, // todo: auth
 		},
 		Payload: payload,
+	}
+
+	// extract context
+	md, ok := metadata.FromOutgoingContext(s.ctx)
+	if ok {
+		msg.PkgHead.Meta = md
 	}
 
 	return

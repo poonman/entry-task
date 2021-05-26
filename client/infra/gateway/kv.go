@@ -8,13 +8,27 @@ import (
 	"github.com/poonman/entry-task/client/infra/config"
 	"github.com/poonman/entry-task/dora/client"
 	"github.com/poonman/entry-task/dora/log"
+	"github.com/poonman/entry-task/dora/metadata"
 )
 
 type kvGateway struct {
 	client kv.StoreClient
 }
 
-func (g *kvGateway) Auth(u *user.User) (err error) {
+func (g *kvGateway) Login(u *user.User) (err error) {
+	req := &kv.LoginReq{
+		Username:             u.Name,
+		Password:             u.Password,
+	}
+
+	rsp, err := g.client.Login(context.TODO(), req)
+	if err != nil {
+		log.Errorf("Failed to login. username:[%s], err:[%s]", u.Name, err)
+		return
+	}
+
+	u.Token = rsp.Token
+
 	return
 }
 
@@ -24,7 +38,10 @@ func (g *kvGateway) Set(u *user.User, key, value string) (err error) {
 		Value:                value,
 	}
 
-	ctx := context.TODO()
+	ctx := metadata.NewOutgoingContext(context.TODO(), map[string]string{
+		"username": u.Name,
+		"token": u.Token,
+	})
 
 	_, err = g.client.WriteSecureMessage(ctx, req)
 	if err != nil {

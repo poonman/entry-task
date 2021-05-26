@@ -5,7 +5,7 @@ import (
 	"github.com/poonman/entry-task/dora/status"
 )
 
-func NewKey(uid uint64, originKey string) (key string) {
+func NewKey(uid, originKey string) (key string) {
 	return fmt.Sprintf("%d:%s", uid, originKey)
 }
 

@@ -8,6 +8,7 @@ import (
 	"github.com/poonman/entry-task/dora/codec"
 	"github.com/poonman/entry-task/dora/codec/proto"
 	"github.com/poonman/entry-task/dora/log"
+	"github.com/poonman/entry-task/dora/metadata"
 	"github.com/poonman/entry-task/dora/protocol"
 	"github.com/poonman/entry-task/dora/status"
 	"io"
@@ -179,10 +180,7 @@ func (s *Server) serveConn(conn net.Conn) {
 		req, err := s.recvRequest(r)
 		if err != nil {
 			if err == io.EOF {
-				// close connect
-				//_ = conn.Close()
-				// close on defer, just log here
-				log.Warnf("recv request error. ")
+				log.Warnf("recv request error. EOF")
 			} else {
 				log.Errorf("Failed to recv request. err:[%v]", err)
 			}
@@ -228,18 +226,22 @@ func (s *Server) handleRequest(ctx context.Context, reqMsg *protocol.Message) (r
 
 	//log.Infof("[dora] handleRequest begin. ")
 
-	method := reqMsg.PkgHead.Method
+	methodName := reqMsg.PkgHead.Method
+
+	if len(reqMsg.PkgHead.Meta) != 0 {
+		ctx = metadata.NewIncomingContext(ctx, reqMsg.PkgHead.Meta)
+	}
 
 	rspMsg = reqMsg.Clone()
 
 	rspMsg.SetMessageType(protocol.Head_Response)
 
 	s.mu.RLock()
-	md, ok := s.methods[method]
+	method, ok := s.methods[methodName]
 	s.mu.RUnlock()
 
 	if !ok {
-		err = status.Newf(status.Unimplemented, "method '%s' is unimplemented", method)
+		err = status.Newf(status.Unimplemented, "method '%s' is unimplemented", methodName)
 		handleError(rspMsg, err)
 		return
 	}
@@ -261,7 +263,7 @@ func (s *Server) handleRequest(ctx context.Context, reqMsg *protocol.Message) (r
 		payload []byte
 	)
 
-	rsp, err = md.Handler(s.serverImpl, ctx, df, s.opts.Interceptor)
+	rsp, err = method.Handler(s.serverImpl, ctx, df, s.opts.Interceptor)
 	if err != nil {
 		handleError(rspMsg, err)
 		return

@@ -76,3 +76,16 @@ func (c Code) String() string {
 
 	return str
 }
+
+var (
+	ErrUnimplemented = New(Unimplemented, "Unimplemented")
+	ErrBadRequest = New(BadRequest, "BadRequest")
+	ErrNotFound = New(NotFound, "NotFound")
+	ErrPermissionDenied = New(PermissionDenied, "PermissionDenied")
+	ErrInternal = New(Internal, "Internal")
+	ErrUnauthenticated = New(Unauthenticated, "Unauthenticated")
+	ErrUnknown = New(Unknown, "Unknown")
+	ErrUnavailable = New(Unavailable, "Unavailable")
+	ErrInternalServerError = New(InternalServerError, "InternalServerError")
+
+)

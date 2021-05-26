@@ -1,25 +1,39 @@
 package session
 
 import (
-	"database/sql"
-	"github.com/poonman/entry-task/dora/log"
 	"github.com/poonman/entry-task/server/domain/aggr/session"
-	"github.com/poonman/entry-task/server/infra/config"
+	"sync"
 )
 
 type repo struct {
-	db *sql.DB
+	mu sync.RWMutex
+	userTokens map[string]string
 }
 
-func NewRepo(conf *config.Config) session.Repo {
-	db, err := sql.Open("mysql", conf.MySQLConfig.SourceName)
-	if err != nil {
-		log.Fatal("Failed to open mysql database. err:[%v]", err)
+func (r *repo) Save(username, token string) (err error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	r.userTokens[username] = token
+
+	return nil
+}
+
+func (r *repo) Get(username string) (token string, err error) {
+	r.mu.RLock()
+	r.mu.RUnlock()
+
+	token, ok := r.userTokens[username]
+	if !ok {
+		return "", nil
 	}
 
-	r := &repo {
-		db: db,
-	}
+	return token, nil
+}
 
-	return r
+func NewRepo() session.Repo {
+	return &repo{
+		mu:    sync.RWMutex{},
+		userTokens: make(map[string]string),
+	}
 }

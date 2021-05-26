@@ -28,6 +28,7 @@ var _ = math.Inf
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type StoreClient interface {
+	Login(ctx context.Context, in *LoginReq) (out *LoginRsp, err error)
 	WriteSecureMessage(ctx context.Context, in *WriteSecureMessageReq) (out *WriteSecureMessageRsp, err error)
 	ReadSecureMessage(ctx context.Context, in *ReadSecureMessageReq) (out *ReadSecureMessageRsp, err error)
 }
@@ -36,6 +37,21 @@ type storeClient struct {
 	cc client.Invoker
 }
 
+func NewStoreClient(cc client.Invoker) StoreClient {
+	return &storeClient{
+		cc: cc,
+	}
+}
+
+func (c *storeClient) Login(ctx context.Context, in *LoginReq) (out *LoginRsp, err error) {
+	out = &LoginRsp{}
+
+	err = c.cc.Invoke(ctx, "Login", in, out)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
 func (c *storeClient) WriteSecureMessage(ctx context.Context, in *WriteSecureMessageReq) (out *WriteSecureMessageRsp, err error) {
 	out = &WriteSecureMessageRsp{}
 
@@ -56,12 +72,17 @@ func (c *storeClient) ReadSecureMessage(ctx context.Context, in *ReadSecureMessa
 }
 
 type StoreServer interface {
+	Login(ctx context.Context, in *LoginReq, out *LoginRsp) (err error)
 	WriteSecureMessage(ctx context.Context, in *WriteSecureMessageReq, out *WriteSecureMessageRsp) (err error)
 	ReadSecureMessage(ctx context.Context, in *ReadSecureMessageReq, out *ReadSecureMessageRsp) (err error)
 	mustEmbedUnimplementedStoreServer()
 }
 
 type UnimplementedStoreServer struct {
+}
+
+func (UnimplementedStoreServer) Login(context.Context, *LoginReq, *LoginRsp) error {
+	return status.New(status.Unimplemented, "server is unimplemented")
 }
 
 func (UnimplementedStoreServer) WriteSecureMessage(context.Context, *WriteSecureMessageReq, *WriteSecureMessageRsp) error {
@@ -77,6 +98,30 @@ func (UnimplementedStoreServer) mustEmbedUnimplementedStoreServer() {}
 func RegisterStoreServer(r server.ServiceRegistrar, impl StoreServer) {
 	r.RegisterService(Store_ServiceDesc, impl)
 }
+func _StoreServer_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor server.Interceptor) (_ interface{}, err error) {
+	in := new(LoginReq)
+	if err = dec(in); err != nil {
+		return nil, err
+	}
+
+	out := new(LoginRsp)
+
+	if interceptor == nil {
+		err = srv.(StoreServer).Login(ctx, in, out)
+		return out, err
+	}
+
+	info := &server.InterceptorServerInfo{
+		Server: srv,
+		Method: "Login",
+	}
+	handler := func(ctx context.Context, in, out interface{}) error {
+		return srv.(StoreServer).Login(ctx, in.(*LoginReq), out.(*LoginRsp))
+	}
+	err = interceptor(ctx, in, out, info, handler)
+	return out, err
+}
+
 func _StoreServer_WriteSecureMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor server.Interceptor) (_ interface{}, err error) {
 	in := new(WriteSecureMessageReq)
 	if err = dec(in); err != nil {
@@ -127,6 +172,10 @@ func _StoreServer_ReadSecureMessage_Handler(srv interface{}, ctx context.Context
 
 var Store_ServiceDesc = &server.ServiceDesc{
 	Methods: []server.MethodDesc{
+		{
+			Name:    "Login",
+			Handler: _StoreServer_Login_Handler,
+		},
 		{
 			Name:    "WriteSecureMessage",
 			Handler: _StoreServer_WriteSecureMessage_Handler,

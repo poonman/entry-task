@@ -5,10 +5,22 @@ package kv;
 option go_package="kv";
 
 service Store {
+
+    rpc Login(LoginReq) returns (LoginRsp);
+
     rpc WriteSecureMessage(WriteSecureMessageReq) returns (WriteSecureMessageRsp);
 
     rpc ReadSecureMessage(ReadSecureMessageReq) returns (ReadSecureMessageRsp);
 };
+
+message LoginReq {
+    string username = 1;
+    string password = 2;
+}
+
+message LoginRsp {
+    string token = 1;
+}
 
 message WriteSecureMessageReq {
     string key = 1;

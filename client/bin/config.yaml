@@ -2,5 +2,5 @@ server:
   address: 127.0.0.1:9000
 
 benchmark:
-  concurrency: 100
+  concurrency: 12
   requestNumPerConcurrency: 100

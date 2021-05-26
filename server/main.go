@@ -5,6 +5,8 @@ import (
 	"github.com/poonman/entry-task/dora/misc/helper"
 	"github.com/poonman/entry-task/dora/server"
 	"github.com/poonman/entry-task/server/api"
+	"github.com/poonman/entry-task/server/api/interceptor"
+	"github.com/poonman/entry-task/server/app"
 	"github.com/poonman/entry-task/server/idl/kv"
 	"github.com/poonman/entry-task/server/infra/config"
 	"github.com/poonman/entry-task/server/infra/driver/redis"
@@ -21,8 +23,9 @@ func BuildContainer() *dig.Container {
 	helper.MustContainerProvide(c, config.NewConfig)
 	helper.MustContainerProvide(c, redis.NewRedisPool)
 
-	//helper.MustContainerProvide(c, app.NewService)
+	helper.MustContainerProvide(c, app.NewService)
 	helper.MustContainerProvide(c, api.NewHandler)
+	helper.MustContainerProvide(c, interceptor.NewAuthInterceptor)
 
 	return c
 }
@@ -30,13 +33,13 @@ func BuildContainer() *dig.Container {
 func main() {
 	c := BuildContainer()
 
-	helper.MustContainerInvoke(c, func(conf *config.Config, h kv.StoreServer) {
+	helper.MustContainerInvoke(c, func(conf *config.Config, interceptor *interceptor.AuthInterceptor, h kv.StoreServer) {
 
 		log.Debug("start...")
 		//tlsConfig := conf.LoadTLSConfig()
 		//dora := server.NewServer(server.WithTlsConfig(tlsConfig))
 
-		dora := server.NewServer()
+		dora := server.NewServer(server.WithInterceptor(interceptor.Auth))
 
 		kv.RegisterStoreServer(dora, h)
 

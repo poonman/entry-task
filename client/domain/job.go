@@ -83,21 +83,21 @@ func (s *Service) RequestRead(concurrencyNo int, stat *stat.Stat) {
 		}
 		before := time.Now()
 		_, err := s.kvGateway.Get(u, s.keys[0])
-		cost := time.Now().Sub(before)
+		rt := time.Now().Sub(before)
 		if err != nil {
 			stat.Failure++
 		} else {
 			stat.Success++
 		}
 
-		if cost > stat.MaxRT {
-			stat.MaxRT = cost
+		if rt > stat.MaxRT {
+			stat.MaxRT = rt
 		}
 
-		if cost < stat.MinRT {
-			stat.MinRT = cost
+		if rt < stat.MinRT {
+			stat.MinRT = rt
 		}
 
-		stat.TotalRT += cost
+		stat.TotalRT += rt
 	}
 }

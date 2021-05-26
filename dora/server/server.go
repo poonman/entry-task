@@ -26,9 +26,6 @@ const (
 )
 
 var (
-	ErrUnsupportedMethod = errors.New("unsupported method")
-	ErrInternal          = errors.New("internal error")
-
 	ErrServerClosed = errors.New("server closed")
 )
 
@@ -177,7 +174,7 @@ func (s *Server) serveConn(conn net.Conn) {
 
 		ctx := context.Background()
 
-		log.Debugf("begin recv request...")
+		//log.Debugf("begin recv request...")
 
 		req, err := s.recvRequest(r)
 		if err != nil {
@@ -210,26 +207,26 @@ func (s *Server) serveConn(conn net.Conn) {
 func (s *Server) recvRequest(r io.Reader) (msg *protocol.Message, err error) {
 	msg, err = protocol.ReadMessage(r)
 
-	log.Infof("[dora] recvRequest. msg:[%+v]", msg)
+//	log.Infof("[dora] recvRequest. msg:[%+v]", msg)
 
 	return
 }
 
 func (s *Server) sendResponse(rsp *protocol.Message, w net.Conn /*w io.Writer*/) (err error) {
-	log.Infof("[dora] sendResponse begin. rsp:[%+v]", rsp)
+	//log.Infof("[dora] sendResponse begin. rsp:[%+v]", rsp)
 
 	err = protocol.WriteMessage(w, rsp)
 	if err != nil {
 		return err
 	}
 
-	log.Infof("[dora] sendResponse success.")
+	//log.Infof("[dora] sendResponse success.")
 	return
 }
 
 func (s *Server) handleRequest(ctx context.Context, reqMsg *protocol.Message) (rspMsg *protocol.Message, err error) {
 
-	log.Infof("[dora] handleRequest begin. ")
+	//log.Infof("[dora] handleRequest begin. ")
 
 	method := reqMsg.PkgHead.Method
 
@@ -252,7 +249,8 @@ func (s *Server) handleRequest(ctx context.Context, reqMsg *protocol.Message) (r
 	df := func(v interface{}) error {
 		err := c.Unmarshal(reqMsg.Payload, v)
 		if err != nil {
-			return ErrInternal
+			err = status.New(status.Internal, "unmarshal request payload error")
+			return err
 		}
 
 		return nil
@@ -271,14 +269,14 @@ func (s *Server) handleRequest(ctx context.Context, reqMsg *protocol.Message) (r
 
 	payload, err = c.Marshal(rsp)
 	if err != nil {
-		err = ErrInternal
+		err = status.New(status.Internal, "marshal response payload error")
 		handleError(rspMsg, err)
 		return
 	}
 
 	rspMsg.Payload = payload
 
-	log.Infof("handleRequest success.")
+	//log.Infof("handleRequest success.")
 
 	return
 }

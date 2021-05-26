@@ -2,15 +2,12 @@ package client
 
 import (
 	"context"
-	"errors"
 	"github.com/poonman/entry-task/dora/codec"
 	"github.com/poonman/entry-task/dora/codec/proto"
 	"github.com/poonman/entry-task/dora/log"
 	"github.com/poonman/entry-task/dora/protocol"
-)
-
-var (
-	ErrInternal = errors.New("internal error")
+	"github.com/poonman/entry-task/dora/status"
+	"strconv"
 )
 
 type Stream struct {
@@ -56,7 +53,7 @@ func (s *Stream) prepareMsg(req interface{}) (msg *protocol.Message, err error) 
 
 	payload, err := c.Marshal(req)
 	if err != nil {
-		err = ErrInternal
+		err = status.New(status.Internal, "marshal request error")
 		return
 	}
 
@@ -88,13 +85,45 @@ func (s *Stream) RecvMsg(rsp interface{}) (err error) {
 		return
 	}
 
+	// parse dora status
+	meta := msg.PkgHead.Meta
+	err = parseError(meta)
+	if err != nil {
+		return
+	}
+
 	c := codec.GetCodec(s.callInfo.serializeType)
 
 	err = c.Unmarshal(msg.Payload, rsp)
 	if err != nil {
-		err = ErrInternal
+		//err = ErrInternal
+		err = status.New(status.Internal, "unmarshal payload error")
 		return
 	}
 
+	return
+}
+
+func parseError(meta map[string]string) (err error) {
+	st, ok := meta["dora-status"]
+	if !ok {
+		err = nil
+		return
+	}
+
+	code, err := strconv.ParseUint(st, 10, 32)
+	if err != nil {
+		err = status.New(status.Internal, "parse status error")
+		return
+	}
+
+	if code == 0 {
+		err = nil
+		return
+	}
+
+	msg := meta["dora-message"]
+
+	err = status.New(status.Code(code), msg)
 	return
 }

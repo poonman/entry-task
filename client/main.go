@@ -23,6 +23,6 @@ func main() {
 	c := BuildContainer()
 
 	helper.MustContainerInvoke(c, func(svc *domain.Service) {
-		svc.RunJob()
+		svc.BenchmarkRead()
 	})
 }

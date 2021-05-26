@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"github.com/golang/protobuf/proto"
-	"github.com/poonman/entry-task/dora/log"
 	"io"
 	"net"
 )
@@ -46,13 +45,13 @@ func ReadMessage(r io.Reader) (msg *Message, err error) {
 	magicBytes := make([]byte, 1)
 	pkgLenBytes := make([]byte, 4)
 
-	log.Debugf("magic...")
+	//log.Debugf("magic...")
 	_, err = io.ReadFull(r, magicBytes)
 	if err != nil {
 		return
 	}
 
-	log.Debugf("magic:[%v]", magicBytes)
+	//log.Debugf("magic:[%v]", magicBytes)
 
 	err = checkMagic(magicBytes[0])
 	if err != nil {
@@ -60,38 +59,38 @@ func ReadMessage(r io.Reader) (msg *Message, err error) {
 	}
 
 	// pkg
-	log.Debugf("pkgLen...")
+	//log.Debugf("pkgLen...")
 	_, err = io.ReadFull(r, pkgLenBytes)
 	if err != nil {
 		return
 	}
 
 	pkgLen := binary.BigEndian.Uint32(pkgLenBytes)
-	log.Debugf("pkgLen:%d", pkgLen)
+	//log.Debugf("pkgLen:%d", pkgLen)
 
 	// payload
-	log.Debugf("payload len...")
+	//log.Debugf("payload len...")
 	_, err = io.ReadFull(r, pkgLenBytes)
 	if err != nil {
 		return
 	}
 
 	payloadLen := binary.BigEndian.Uint32(pkgLenBytes)
-	log.Debugf("payloadLen:%d", payloadLen)
+	//log.Debugf("payloadLen:%d", payloadLen)
 
 	if pkgLen+payloadLen > MaxMessageLength {
 		err = ErrMessageTooLong
 		return
 	}
 
-	log.Debugf("pkg...")
+	//log.Debugf("pkg...")
 	pkgBytes := make([]byte, pkgLen)
 	_, err = io.ReadFull(r, pkgBytes)
 	if err != nil {
 		return
 	}
 
-	log.Debugf("payload")
+	//log.Debugf("payload")
 	payloadBytes := make([]byte, payloadLen)
 	_, err = io.ReadFull(r, payloadBytes)
 	if err != nil {
@@ -105,7 +104,7 @@ func ReadMessage(r io.Reader) (msg *Message, err error) {
 		return
 	}
 
-	log.Debugf("readMessage success...")
+	//log.Debugf("readMessage success...")
 	msg = &Message{
 		PkgHead: pkg,
 		Payload: payloadBytes,
@@ -116,7 +115,7 @@ func ReadMessage(r io.Reader) (msg *Message, err error) {
 
 func WriteMessage(conn net.Conn, msg *Message) (err error) {
 
-	log.Debugf("WriteMessage begin...")
+	//log.Debugf("WriteMessage begin...")
 
 	pkgBytes, err := proto.Marshal(msg.PkgHead)
 	if err != nil {
@@ -141,7 +140,7 @@ func WriteMessage(conn net.Conn, msg *Message) (err error) {
 	data = append(data, pkgBytes...)
 	data = append(data, msg.Payload...)
 
-	log.Debugf("data:[%+v]", data)
+	//log.Debugf("data:[%+v]", data)
 
 	_, err = conn.Write(data)
 	//_, err = w.Write(data)
@@ -150,7 +149,7 @@ func WriteMessage(conn net.Conn, msg *Message) (err error) {
 	}
 
 
-	log.Debugf("WriteMessage end...")
+	//log.Debugf("WriteMessage end...")
 	return
 }
 

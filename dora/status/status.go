@@ -25,6 +25,21 @@ func Newf(code Code, format string, a ...interface{}) *Status {
 	return New(code, fmt.Sprintf(format, a...))
 }
 
+func Equal(e1, e2 error) bool {
+	return Error2Code(e1) == Error2Code(e2)
+}
+
+func Error2Code(err error) Code {
+	// Don't use FromError to avoid allocation of OK status.
+	if err == nil {
+		return Ok
+	}
+	if se, ok := err.(*Status); ok {
+		return se.Code
+	}
+	return Unknown
+}
+
 type Code uint32
 
 const (
@@ -37,6 +52,7 @@ const (
 	Unauthenticated  Code = 6
 	Unknown          Code = 7
 	Unavailable      Code = 8
+	InternalServerError Code = 9
 )
 
 var code2Str = map[Code]string{
@@ -49,6 +65,7 @@ var code2Str = map[Code]string{
 	Unauthenticated:  "Unauthenticated",
 	Unknown:          "Unknown",
 	Unavailable:      "Unavailable",
+	InternalServerError: "InternalServerError",
 }
 
 func (c Code) String() string {

@@ -1,11 +1,11 @@
-package quota
+package account
 
 import (
 	"context"
 	"database/sql"
 	"github.com/poonman/entry-task/dora/log"
 	"github.com/poonman/entry-task/dora/status"
-	"github.com/poonman/entry-task/server/domain/aggr/quota"
+	"github.com/poonman/entry-task/server/domain/aggr/account"
 	"github.com/poonman/entry-task/server/infra/config"
 	"time"
 )
@@ -14,12 +14,11 @@ type repo struct {
 	db *sql.DB
 }
 
+func (r *repo) Get(ctx context.Context, username string) (a *account.Account, err error) {
 
-func (r *repo) Get(ctx context.Context, username string) (a *quota.Quota, err error) {
-
-	a = &quota.Quota{}
-	row := r.db.QueryRowContext(ctx, "select * from quota where username=?", username)
-	if err = row.Scan(&a.Username, &a.Read, &a.Write); err != nil {
+	a = &account.Account{}
+	row := r.db.QueryRowContext(ctx, "select * from account where username=?", username)
+	if err = row.Scan(&a.Username, &a.Password); err != nil {
 		err = status.New(status.InternalServerError, "query account error")
 		return
 	}
@@ -27,7 +26,7 @@ func (r *repo) Get(ctx context.Context, username string) (a *quota.Quota, err er
 	return
 }
 
-func NewRepo(conf *config.Config) quota.Repo {
+func NewRepo(conf *config.Config) account.Repo {
 	db, err := sql.Open("mysql", conf.MySQLConfig.SourceName)
 	if err != nil {
 		log.Fatal("Failed to open mysql database. err:[%v]", err)

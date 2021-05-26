@@ -1,5 +1,7 @@
 package quota
 
 type Quota struct {
-	Uid uint64
+	Username string
+	Read int
+	Write int
 }

@@ -33,13 +33,14 @@ func BuildContainer() *dig.Container {
 func main() {
 	c := BuildContainer()
 
-	helper.MustContainerInvoke(c, func(conf *config.Config, interceptor *interceptor.Interceptor, h kv.StoreServer) {
+	helper.MustContainerInvoke(c, func(conf *config.Config, /*interceptor *interceptor.Interceptor, */h kv.StoreServer) {
 
 		log.Debug("start...")
 		//tlsConfig := conf.LoadTLSConfig()
 		//dora := server.NewServer(server.WithTlsConfig(tlsConfig))
 
-		dora := server.NewServer(server.WithInterceptor(interceptor.Auth))
+		dora := server.NewServer()
+		//dora := server.NewServer(server.WithInterceptor(interceptor.Do))
 
 		kv.RegisterStoreServer(dora, h)
 

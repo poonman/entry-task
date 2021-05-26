@@ -1,5 +1,7 @@
 package quota
 
+import "context"
+
 type Repo interface {
-	Get(uid int64) (q *Quota, err error)
+	Get(ctx context.Context, username string) (q *Quota, err error)
 }

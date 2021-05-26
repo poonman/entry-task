@@ -18,6 +18,9 @@ type ServerConfig struct {
 
 type MySQLConfig struct {
 	SourceName string `yaml:"sourceName"`
+	MaxOpenConn int `yaml:"maxOpenConn"`
+	MaxIdleConn int `yaml:"maxIdleConn"`
+	ConnMaxLifetime int `yaml:"connMaxLifetime"`
 }
 
 type RedisConfig struct {

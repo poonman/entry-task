@@ -53,13 +53,16 @@ func NewServer(opts ...Option) *Server {
 		ln:            nil,
 		activeConnMap: make(map[net.Conn]struct{}),
 		serverImpl:    nil,
-		methods:       nil,
+		methods:       make(map[string]*MethodDesc),
 		opts:          &Options{},
+		stopCh:        make(chan struct{}),
 	}
 
 	for _, o := range opts {
 		o(s.opts)
 	}
+
+	log.Info("NewServer success...")
 
 	return s
 }
@@ -69,6 +72,8 @@ func (s *Server) Serve(address string) (err error) {
 		ln        net.Listener
 		tempDelay time.Duration
 	)
+
+	log.Info("[dora] Serve begin...")
 
 	if s.opts.tlsConfig != nil {
 		ln, err = tls.Listen("tcp", address, s.opts.tlsConfig)
@@ -83,6 +88,8 @@ func (s *Server) Serve(address string) (err error) {
 	s.mu.Lock()
 	s.ln = ln
 	s.mu.Unlock()
+
+	log.Info("[dora] Listen success...")
 
 	for {
 		conn, err1 := ln.Accept()
@@ -158,6 +165,13 @@ func (s *Server) serveConn(conn net.Conn) {
 	w := bufio.NewWriter(conn)
 
 	for {
+		// check if server is stopped
+		select {
+		case <-s.stopCh:
+			return
+		default:
+			// do nothing
+		}
 
 		ctx := context.Background()
 
@@ -165,12 +179,12 @@ func (s *Server) serveConn(conn net.Conn) {
 		if err != nil {
 			if err == io.EOF {
 				// close connect
-				_ = conn.Close()
+				//_ = conn.Close()
+				// close on defer, just log here
+				log.Warnf("recv request error. ")
 			}
 			return
 		}
-
-		// todo: auth?
 
 		rsp, err := s.handleRequest(ctx, req)
 		if err != nil {
@@ -188,10 +202,6 @@ func (s *Server) serveConn(conn net.Conn) {
 
 func (s *Server) recvRequest(r io.Reader) (msg *protocol.Message, err error) {
 	msg, err = protocol.ReadMessage(r)
-	//// unmask io.EOF
-	//if err == io.EOF {
-	//	return msg, nil
-	//}
 
 	return
 }
@@ -288,10 +298,39 @@ type ServiceRegistrar interface {
 //==============
 
 func (s *Server) RegisterService(sd *ServiceDesc, impl interface{}) {
+	log.Debugf("RegisterService begin...")
 	for k := range sd.Methods {
 		m := &sd.Methods[k]
 		s.methods[m.Name] = m
 	}
 
 	s.serverImpl = impl
+
+	log.Debug("RegisterService success")
+}
+
+func (s *Server) Stop() (err error){
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.ln != nil {
+		err = s.ln.Close()
+	}
+	for conn := range s.activeConnMap {
+		conn.Close()
+		delete(s.activeConnMap, conn)
+	}
+	s.closeDoneChanLocked()
+	return err
+}
+
+func (s *Server) closeDoneChanLocked() {
+	select {
+	case <-s.stopCh:
+		// Already closed. Don't close again.
+	default:
+		// Safe to close here. We're the only closer, guarded
+		// by s.mu.RegisterName
+		close(s.stopCh)
+	}
 }

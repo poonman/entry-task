@@ -1,1 +1,3 @@
 .idea
+server/bin/server
+client/bin/client

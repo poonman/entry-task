@@ -7,24 +7,24 @@ import (
 )
 
 type Config struct {
-	ServerConfig ServerConfig `yaml:"server"`
+	ServerConfig    ServerConfig    `yaml:"server"`
 	BenchmarkConfig BenchmarkConfig `yaml:"benchmark"`
-	CmdConfig CmdConfig `yaml:"cmd"`
+	CmdConfig       CmdConfig       `yaml:"cmd"`
 }
 
 type ServerConfig struct {
-	Address string `yaml:"address"`
-	MaxActiveConn int `yaml:"maxActiveConn"`
+	Address       string `yaml:"address"`
+	MaxActiveConn int    `yaml:"maxActiveConn"`
 }
 
 type BenchmarkConfig struct {
-	Concurrency int `yaml:"concurrency"`
+	Concurrency              int `yaml:"concurrency"`
 	RequestNumPerConcurrency int `yaml:"requestNumPerConcurrency"`
 }
 
 type CmdConfig struct {
 	Commands []string `yaml:"commands"`
-	Username string `yaml:"username"`
+	Username string   `yaml:"username"`
 }
 
 func NewConfig() (c *Config) {

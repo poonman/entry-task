@@ -61,29 +61,29 @@ func Error2Status(err error) *Status {
 type Code uint32
 
 const (
-	Ok               Code = 0
-	Unimplemented    Code = 1
-	BadRequest       Code = 2
-	NotFound         Code = 3
-	PermissionDenied Code = 4
-	Internal         Code = 5
-	Unauthenticated  Code = 6
-	Unknown          Code = 7
-	Unavailable      Code = 8
+	Ok                  Code = 0
+	Unimplemented       Code = 1
+	BadRequest          Code = 2
+	NotFound            Code = 3
+	PermissionDenied    Code = 4
+	Internal            Code = 5
+	Unauthenticated     Code = 6
+	Unknown             Code = 7
+	Unavailable         Code = 8
 	InternalServerError Code = 9
-	Max Code = 20
+	Max                 Code = 20
 )
 
 var code2Str = map[Code]string{
-	Ok:               "Ok",
-	Unimplemented:    "Unimplemented",
-	BadRequest:       "BadRequest",
-	NotFound:         "NotFound",
-	PermissionDenied: "PermissionDenied",
-	Internal:         "Internal",
-	Unauthenticated:  "Unauthenticated",
-	Unknown:          "Unknown",
-	Unavailable:      "Unavailable",
+	Ok:                  "Ok",
+	Unimplemented:       "Unimplemented",
+	BadRequest:          "BadRequest",
+	NotFound:            "NotFound",
+	PermissionDenied:    "PermissionDenied",
+	Internal:            "Internal",
+	Unauthenticated:     "Unauthenticated",
+	Unknown:             "Unknown",
+	Unavailable:         "Unavailable",
 	InternalServerError: "InternalServerError",
 }
 
@@ -97,14 +97,13 @@ func (c Code) String() string {
 }
 
 var (
-	ErrUnimplemented = New(Unimplemented, "Unimplemented")
-	ErrBadRequest = New(BadRequest, "BadRequest")
-	ErrNotFound = New(NotFound, "NotFound")
-	ErrPermissionDenied = New(PermissionDenied, "PermissionDenied")
-	ErrInternal = New(Internal, "Internal")
-	ErrUnauthenticated = New(Unauthenticated, "Unauthenticated")
-	ErrUnknown = New(Unknown, "Unknown")
-	ErrUnavailable = New(Unavailable, "Unavailable")
+	ErrUnimplemented       = New(Unimplemented, "Unimplemented")
+	ErrBadRequest          = New(BadRequest, "BadRequest")
+	ErrNotFound            = New(NotFound, "NotFound")
+	ErrPermissionDenied    = New(PermissionDenied, "PermissionDenied")
+	ErrInternal            = New(Internal, "Internal")
+	ErrUnauthenticated     = New(Unauthenticated, "Unauthenticated")
+	ErrUnknown             = New(Unknown, "Unknown")
+	ErrUnavailable         = New(Unavailable, "Unavailable")
 	ErrInternalServerError = New(InternalServerError, "InternalServerError")
-
 )

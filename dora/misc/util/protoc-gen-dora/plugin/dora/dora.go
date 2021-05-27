@@ -157,7 +157,7 @@ func (g *doraPlugin) generateDoraService(file *generator.FileDescriptor, service
 	g.P()
 
 	g.P("func New", servName, "Client(cc client.Invoker) ", servName, "Client {")
-	g.P("return &",lowerServName,"Client{")
+	g.P("return &", lowerServName, "Client{")
 	g.P("cc:cc,")
 	g.P("}")
 	g.P("}")
@@ -231,7 +231,7 @@ func (g *doraPlugin) generateDoraService(file *generator.FileDescriptor, service
 		g.P("return nil, err")
 		g.P("}")
 		g.P()
-		g.P("out := new(",outType, ")")
+		g.P("out := new(", outType, ")")
 		g.P()
 		g.P("if interceptor == nil {")
 		g.P("err = srv.(", servName, "Server).", methName, "(ctx, in, out)")

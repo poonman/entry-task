@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/poonman/entry-task/dora/misc/lion/encoder"
 	"github.com/hashicorp/consul/api"
+	"github.com/poonman/entry-task/dora/misc/lion/encoder"
 )
 
 func makeMap(e encoder.Encoder, kv api.KVPairs, stripPrefix string) (map[string]interface{}, error) {

@@ -1,7 +1,7 @@
 package user
 
 type User struct {
-	Name string
+	Name     string
 	Password string
-	Token string
+	Token    string
 }

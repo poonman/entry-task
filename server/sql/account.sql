@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS `account` (
     `id` INT UNSIGNED AUTO_INCREMENT,
     `username` VARCHAR(20) NOT NULL,
     `password` VARCHAR(20) NOT NULL,
-    PRIMARY KEY ( `id` )
+    PRIMARY KEY ( `id` ),
+    UNIQUE (`username`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 DROP PROCEDURE IF EXISTS proc_init_account;

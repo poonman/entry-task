@@ -7,10 +7,12 @@ import (
 	"github.com/poonman/entry-task/server/api"
 	"github.com/poonman/entry-task/server/api/interceptor"
 	"github.com/poonman/entry-task/server/app"
+	"github.com/poonman/entry-task/server/domain/factory"
 	"github.com/poonman/entry-task/server/idl/kv"
 	"github.com/poonman/entry-task/server/infra/config"
 	"github.com/poonman/entry-task/server/infra/driver/redis"
 	"github.com/poonman/entry-task/server/infra/repo/account"
+	"github.com/poonman/entry-task/server/infra/repo/limiter"
 	"github.com/poonman/entry-task/server/infra/repo/quota"
 	"github.com/poonman/entry-task/server/infra/repo/session"
 	"github.com/poonman/entry-task/server/infra/repo/store"
@@ -21,6 +23,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	_ "golang.org/x/time/rate"
 )
 
 func BuildContainer() *dig.Container {
@@ -29,6 +32,7 @@ func BuildContainer() *dig.Container {
 	helper.MustContainerProvide(c, config.NewConfig)
 	helper.MustContainerProvide(c, redis.NewRedisPool)
 
+	helper.MustContainerProvide(c, factory.NewFactory)
 	helper.MustContainerProvide(c, app.NewService)
 	helper.MustContainerProvide(c, api.NewHandler)
 	helper.MustContainerProvide(c, interceptor.NewInterceptor)
@@ -38,6 +42,7 @@ func BuildContainer() *dig.Container {
 	helper.MustContainerProvide(c, quota.NewRepo)
 	helper.MustContainerProvide(c, store.NewRepo)
 	helper.MustContainerProvide(c, session.NewRepo)
+	helper.MustContainerProvide(c, limiter.NewRepo)
 
 	return c
 }

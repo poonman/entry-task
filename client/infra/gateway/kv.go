@@ -17,13 +17,17 @@ type kvGateway struct {
 
 func (g *kvGateway) Login(u *user.User) (err error) {
 	req := &kv.LoginReq{
-		Username:             u.Name,
-		Password:             u.Password,
+		Username: u.Name,
+		Password: u.Password,
 	}
 
 	rsp, err := g.client.Login(context.TODO(), req)
 	if err != nil {
 		log.Errorf("Failed to login. username:[%s], err:[%s]", u.Name, err)
+		return
+	}
+
+	if rsp.Status.Code != kv.CODE_OK {
 		return
 	}
 
@@ -34,13 +38,13 @@ func (g *kvGateway) Login(u *user.User) (err error) {
 
 func (g *kvGateway) Set(u *user.User, key, value string) (err error) {
 	req := &kv.WriteSecureMessageReq{
-		Key:                  key,
-		Value:                value,
+		Key:   key,
+		Value: value,
 	}
 
 	ctx := metadata.NewOutgoingContext(context.TODO(), map[string]string{
 		"username": u.Name,
-		"token": u.Token,
+		"token":    u.Token,
 	})
 
 	_, err = g.client.WriteSecureMessage(ctx, req)
@@ -54,12 +58,12 @@ func (g *kvGateway) Set(u *user.User, key, value string) (err error) {
 
 func (g *kvGateway) Get(u *user.User, key string) (value string, err error) {
 	req := &kv.ReadSecureMessageReq{
-		Key:                  key,
+		Key: key,
 	}
 
 	ctx := metadata.NewOutgoingContext(context.TODO(), map[string]string{
 		"username": u.Name,
-		"token": u.Token,
+		"token":    u.Token,
 	})
 
 	rsp, err := g.client.ReadSecureMessage(ctx, req)

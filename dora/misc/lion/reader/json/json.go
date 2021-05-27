@@ -4,11 +4,11 @@ import (
 	"errors"
 	"time"
 
+	"github.com/imdario/mergo"
 	"github.com/poonman/entry-task/dora/misc/lion/encoder"
 	"github.com/poonman/entry-task/dora/misc/lion/encoder/json"
 	"github.com/poonman/entry-task/dora/misc/lion/reader"
 	"github.com/poonman/entry-task/dora/misc/lion/source"
-	"github.com/imdario/mergo"
 )
 
 type jsonReader struct {

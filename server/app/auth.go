@@ -44,7 +44,7 @@ func (s *Service) Authenticate(username, token string) (err error) {
 	)
 	origToken, err = s.sessionRepo.Get(username)
 	if err != nil {
-		log.Errorf("Failed to get user token. err:[%v]",err)
+		log.Errorf("Failed to get user token. err:[%v]", err)
 		return
 	}
 
@@ -65,4 +65,3 @@ func getToken() (token string) {
 
 	return u4.String()
 }
-

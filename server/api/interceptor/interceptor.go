@@ -6,6 +6,7 @@ import (
 	"github.com/poonman/entry-task/dora/server"
 	"github.com/poonman/entry-task/dora/status"
 	"github.com/poonman/entry-task/server/app"
+	"strings"
 )
 
 type Interceptor struct {
@@ -15,7 +16,11 @@ type Interceptor struct {
 var (
 	ErrNoMetadataFound = status.New(status.BadRequest, "no metadata found")
 	ErrNoUsernameFound = status.New(status.BadRequest, "no username found")
-	ErrNoTokenFound = status.New(status.BadRequest, "no token found")
+	ErrNoTokenFound    = status.New(status.BadRequest, "no token found")
+)
+
+var (
+	MaxAccessTimePerSecond int64 = 100000
 )
 
 func (i *Interceptor) Do(ctx context.Context, in, out interface{}, serverInfo *server.InterceptorServerInfo, handler server.Handler) (err error) {
@@ -65,7 +70,37 @@ func (i *Interceptor) Auth(ctx context.Context, serverInfo *server.InterceptorSe
 }
 
 func (i *Interceptor) Limit(ctx context.Context, serverInfo *server.InterceptorServerInfo) (err error) {
-	// todo:
+
+	if serverInfo.Method == "ReadSecureMessage" || serverInfo.Method == "WriteSecureMessage" {
+		var (
+			username string
+			ok       bool
+		)
+		md, ok := metadata.FromIncomingContext(ctx)
+		if !ok {
+			err = ErrNoMetadataFound
+			return
+		}
+
+		if username, ok = md["username"]; !ok {
+			err = ErrNoUsernameFound
+			return
+		}
+
+		if strings.Compare(serverInfo.Method, "ReadSecureMessage") == 0 {
+			allow := i.app.AllowRead(ctx, username)
+			if !allow {
+				err = status.ErrUnavailable
+				return
+			}
+		} else if strings.Compare(serverInfo.Method, "WriteSecureMessage") == 0 {
+			allow := i.app.AllowWrite(ctx, username)
+			if !allow {
+				err = status.ErrUnavailable
+				return
+			}
+		}
+	}
 	return nil
 }
 

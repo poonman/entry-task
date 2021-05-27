@@ -17,7 +17,7 @@ func (s *Service) BenchmarkRead() {
 
 	wg.Add(s.conf.BenchmarkConfig.Concurrency)
 
-	stats := make([]*stat.Stat, 0, s.conf.BenchmarkConfig.Concurrency)
+	stats := make([]*stat.Stat, s.conf.BenchmarkConfig.Concurrency*s.conf.BenchmarkConfig.RequestNumPerConcurrency)
 
 	u := &user.User{
 		Name:     "1",
@@ -31,16 +31,17 @@ func (s *Service) BenchmarkRead() {
 		return
 	}
 
-
-	for i:=0; i<s.conf.BenchmarkConfig.Concurrency; i++ {
-		st := &stat.Stat{}
-
-		stats = append(stats, st)
-
+	for i := 0; i < s.conf.BenchmarkConfig.Concurrency; i++ {
 
 		go func(no int, u *user.User) {
+			var tmp []*stat.Stat
 
-			s.RequestRead(u, no, st)
+			if no == s.conf.BenchmarkConfig.Concurrency {
+				tmp = stats[no*s.conf.BenchmarkConfig.Concurrency:]
+			} else {
+				tmp = stats[no*s.conf.BenchmarkConfig.RequestNumPerConcurrency : (no+1)*s.conf.BenchmarkConfig.RequestNumPerConcurrency]
+			}
+			s.RequestRead(u, no, tmp)
 			wg.Done()
 		}(i, u)
 	}
@@ -49,48 +50,18 @@ func (s *Service) BenchmarkRead() {
 
 	rep := &stat.Report{
 		Concurrency: s.conf.BenchmarkConfig.Concurrency,
-		Success:     0,
-		Failure:     0,
-		QPS:         0,
-		MaxRT:       0,
-		MinRT:       1000 * time.Second,
-		AvgRT:       0,
-		TotalRT:     0,
-		SuccessRT:   0,
-		FailureRT:   0,
 	}
 
-	for _, s := range stats {
-		if s.MinRT < rep.MinRT {
-			rep.MinRT = s.MinRT
-		}
-
-		if s.MaxRT > rep.MaxRT {
-			rep.MaxRT = s.MaxRT
-		}
-
-		rep.Success += s.Success
-		rep.Failure += s.Failure
-
-		rep.TotalRT += s.TotalRT
-		rep.SuccessRT += s.SuccessRT
-		rep.FailureRT += s.FailureRT
-	}
-
-
-
-	rep.QPS = float32(s.conf.BenchmarkConfig.Concurrency) * float32(rep.Success) / (float32(rep.TotalRT) / float32(time.Second))
-	rep.AvgRT = rep.TotalRT / time.Duration(rep.Success+rep.Failure)
+	rep.Statistic(stats)
 
 	log.Infof("report:[%s]", rep)
 }
 
-func (s *Service) RequestRead(u *user.User, concurrencyNo int, stat *stat.Stat) {
-
+func (s *Service) RequestRead(u *user.User, concurrencyNo int, stats []*stat.Stat) {
 
 	for i := 1; i <= s.conf.BenchmarkConfig.RequestNumPerConcurrency; i++ {
 		if u == nil {
-			tmp := strconv.Itoa(concurrencyNo*1000+i)
+			tmp := strconv.Itoa(concurrencyNo*1000 + i)
 			u = &user.User{
 				Name:     tmp,
 				Password: tmp,
@@ -100,23 +71,18 @@ func (s *Service) RequestRead(u *user.User, concurrencyNo int, stat *stat.Stat) 
 			_ = s.Login(u)
 		}
 
+		st := &stat.Stat{}
+		stats[i-1] = st
+
 		before := time.Now()
 		_, err := s.kvGateway.Get(u, s.keys[0])
 		rt := time.Now().Sub(before)
 		if err != nil {
-			stat.Failure++
+			st.Success = false
 		} else {
-			stat.Success++
+			st.Success = true
 		}
 
-		if rt > stat.MaxRT {
-			stat.MaxRT = rt
-		}
-
-		if rt < stat.MinRT {
-			stat.MinRT = rt
-		}
-
-		stat.TotalRT += rt
+		st.RT = rt
 	}
 }

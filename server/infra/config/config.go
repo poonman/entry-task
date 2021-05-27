@@ -10,31 +10,37 @@ import (
 )
 
 type ServerConfig struct {
-	ListenAddress string `yaml:"listenAddress"`
+	ListenAddress     string `yaml:"listenAddress"`
 	ServerKeyFilepath string `yaml:"serverKeyFilepath"`
 	ServerPemFilepath string `yaml:"serverPemFilepath"`
 	ClientPemFilepath string `yaml:"clientPemFilepath"`
 }
 
 type MySQLConfig struct {
-	SourceName string `yaml:"sourceName"`
-	MaxOpenConn int `yaml:"maxOpenConn"`
-	MaxIdleConn int `yaml:"maxIdleConn"`
-	ConnMaxLifetime int `yaml:"connMaxLifetime"`
+	SourceName      string `yaml:"sourceName"`
+	MaxOpenConn     int    `yaml:"maxOpenConn"`
+	MaxIdleConn     int    `yaml:"maxIdleConn"`
+	ConnMaxLifetime int    `yaml:"connMaxLifetime"`
 }
 
 type RedisConfig struct {
-	Address string `yaml:"address"`
+	Address  string `yaml:"address"`
 	Password string `yaml:"password"`
 }
 
-type Config struct {
-	ServerConfig ServerConfig `yaml:"server"`
-	RedisConfig RedisConfig `yaml:"redis"`
-	MySQLConfig MySQLConfig `yaml:"mysql"`
+type QuotaRepoConfig struct {
+	UseMySQL   bool `yaml:"useMySQL"`
+	FixedQuota int  `yaml:"fixedQuota"`
 }
 
-func NewConfig() (c *Config){
+type Config struct {
+	ServerConfig    ServerConfig    `yaml:"server"`
+	RedisConfig     RedisConfig     `yaml:"redis"`
+	MySQLConfig     MySQLConfig     `yaml:"mysql"`
+	QuotaRepoConfig QuotaRepoConfig `yaml:"quotaRepo"`
+}
+
+func NewConfig() (c *Config) {
 	err := lion.Load(file.NewSource(file.WithPath("config.yaml")))
 	if err != nil {
 		log.Fatal("Failed to load config. err:[%v]", err)
@@ -60,6 +66,11 @@ func NewConfig() (c *Config){
 		return
 	}
 
+	err = lion.Get("quotaRepo").Scan(&c.QuotaRepoConfig)
+	if err != nil {
+		log.Errorf("Failed to scan config. err:[%v]", err)
+		return
+	}
 	log.Infof("NewConfig success. config:[%+v]", c)
 
 	return c

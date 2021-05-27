@@ -6,7 +6,7 @@ import (
 )
 
 type repo struct {
-	mu sync.RWMutex
+	mu         sync.RWMutex
 	userTokens map[string]string
 }
 
@@ -33,7 +33,7 @@ func (r *repo) Get(username string) (token string, err error) {
 
 func NewRepo() session.Repo {
 	return &repo{
-		mu:    sync.RWMutex{},
+		mu:         sync.RWMutex{},
 		userTokens: make(map[string]string),
 	}
 }

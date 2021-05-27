@@ -6,7 +6,7 @@ import (
 )
 
 type Account struct {
-	Id int
+	Id       int
 	Username string
 	Password string
 }

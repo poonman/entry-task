@@ -24,11 +24,12 @@ func (h *Handler) Login(ctx context.Context, req *kv.LoginReq, rsp *kv.LoginRsp)
 		return
 	}
 
+	rsp.Status = excp.Error2Status(nil)
+
 	return
 }
 
 func (h *Handler) WriteSecureMessage(ctx context.Context, req *kv.WriteSecureMessageReq, rsp *kv.WriteSecureMessageRsp) (err error) {
-
 
 	username, ok := ctx.Value("username").(string)
 	if !ok {
@@ -75,7 +76,7 @@ func (h *Handler) ReadSecureMessage(ctx context.Context, req *kv.ReadSecureMessa
 
 func NewHandler(
 	app *app.Service,
-	) kv.StoreServer {
+) kv.StoreServer {
 
 	h := &Handler{
 		app: app,

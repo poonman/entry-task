@@ -38,7 +38,7 @@ func NewStream(ctx context.Context, method string, cc *Connection) *Stream {
 }
 
 func (s *Stream) SendMsg(req interface{}) (err error) {
-//	log.Info("[dora] SendMsg begin...")
+	//	log.Info("[dora] SendMsg begin...")
 
 	msg, err := s.prepareMsg(req)
 	if err != nil {
@@ -77,7 +77,7 @@ func (s *Stream) prepareMsg(req interface{}) (msg *protocol.Message, err error) 
 		msg.PkgHead.Meta = md
 	}
 
-//	log.Debugf("md:[%v]", md)
+	//	log.Debugf("md:[%v]", md)
 
 	return
 }

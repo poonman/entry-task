@@ -5,8 +5,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/poonman/entry-task/dora/misc/lion/source"
 	"github.com/hashicorp/consul/api"
+	"github.com/poonman/entry-task/dora/misc/lion/source"
 )
 
 // Currently a single consul reader

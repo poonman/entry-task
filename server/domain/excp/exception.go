@@ -8,7 +8,7 @@ import (
 
 var (
 	ErrIncorrectUsernameOrPassword = errors.New("incorrect username or password")
-	ErrKeyNotExist = status.New(status.Code(kv.CODE_KEY_NOT_EXIST), "key not exist")
+	ErrKeyNotExist                 = status.New(status.Code(kv.CODE_KEY_NOT_EXIST), "key not exist")
 )
 
 func IsBuzError(err error) bool {
@@ -28,8 +28,8 @@ func Error2Status(err error) *kv.Status {
 	st := status.Error2Status(err)
 
 	s := &kv.Status{
-		Code:                 kv.CODE(st.Code),
-		Message:              st.Message,
+		Code:    kv.CODE(st.Code),
+		Message: st.Message,
 	}
 
 	return s

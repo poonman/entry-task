@@ -25,7 +25,6 @@ func WithInterceptor(i Interceptor) Option {
 	}
 }
 
-
 type MethodHandler func(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor Interceptor) (rsp interface{}, err error)
 
 type MethodDesc struct {

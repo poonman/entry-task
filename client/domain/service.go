@@ -8,26 +8,26 @@ import (
 
 type Service struct {
 	kvGateway gateway.KvGateway
-	conf *config.Config
+	conf      *config.Config
 
-	keys []string
+	keys   []string
 	values []string
 }
 
 func NewService(
 	kvGateway gateway.KvGateway,
 	conf *config.Config,
-	) *Service {
+) *Service {
 
 	s := &Service{
 		kvGateway: kvGateway,
-		conf: conf,
+		conf:      conf,
 	}
 
 	keys := make([]string, 0, 100)
 	values := make([]string, 0, 100)
 
-	for i:=1;i<=100;i++ {
+	for i := 1; i <= 100; i++ {
 		key := newKey(i)
 		keys = append(keys, key)
 		value := newValue(i)
@@ -41,18 +41,18 @@ func NewService(
 }
 
 func newKey(id int) (key string) {
-	key = fmt.Sprintf("%dxxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx",id)
-	for i :=0; i<9;i++ {
-		key+= "0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx"
+	key = fmt.Sprintf("%dxxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx", id)
+	for i := 0; i < 9; i++ {
+		key += "0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx0xxxxxxxxx"
 	}
-	
-	return 
+
+	return
 }
 
 func newValue(id int) (key string) {
 	key = fmt.Sprintf("%dyyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy", id)
-	for i :=0; i<9;i++ {
-		key+= "0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy"
+	for i := 0; i < 9; i++ {
+		key += "0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy0yyyyyyyyy"
 	}
 
 	return

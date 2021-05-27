@@ -153,7 +153,6 @@ func WriteMessage(conn net.Conn, msg *Message) (err error) {
 		return
 	}
 
-
 	//log.Debugf("WriteMessage end...")
 	return
 }

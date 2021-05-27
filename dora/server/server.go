@@ -205,7 +205,7 @@ func (s *Server) serveConn(conn net.Conn) {
 func (s *Server) recvRequest(r io.Reader) (msg *protocol.Message, err error) {
 	msg, err = protocol.ReadMessage(r)
 
-//	log.Infof("[dora] recvRequest. msg:[%+v]", msg)
+	//	log.Infof("[dora] recvRequest. msg:[%+v]", msg)
 
 	return
 }
@@ -326,7 +326,7 @@ func (s *Server) RegisterService(sd *ServiceDesc, impl interface{}) {
 	log.Debug("RegisterService success")
 }
 
-func (s *Server) Stop() (err error){
+func (s *Server) Stop() (err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

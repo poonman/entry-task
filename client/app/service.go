@@ -15,7 +15,7 @@ type Service struct {
 
 func NewService(domainSvc *domain.Service) *Service {
 	return &Service{
-		domainSvc: domainSvc,
+		domainSvc:   domainSvc,
 		userManager: userm.NewUserManager(),
 	}
 }
@@ -54,7 +54,6 @@ func (s *Service) WriteSecureMessage(username string) (err error) {
 	return
 }
 
-
 func (s *Service) ReadSecureMessage(username string) (err error) {
 	u := s.userManager.GetUser(username)
 
@@ -78,4 +77,3 @@ func (s *Service) ReadSecureMessage(username string) (err error) {
 func (s *Service) BenchmarkRead() {
 	s.domainSvc.BenchmarkRead()
 }
-

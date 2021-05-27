@@ -5,8 +5,8 @@ import (
 	"fmt"
 )
 
-type mdIncomingKey struct {}
-type mdOutgoingKey struct {}
+type mdIncomingKey struct{}
+type mdOutgoingKey struct{}
 
 type MD map[string]string
 
@@ -45,9 +45,7 @@ func FromOutgoingContext(ctx context.Context) (md MD, ok bool) {
 	return md, true
 }
 
-
 func FromIncomingContext(ctx context.Context) (md MD, ok bool) {
 	md, ok = ctx.Value(mdIncomingKey{}).(MD)
 	return
 }
-

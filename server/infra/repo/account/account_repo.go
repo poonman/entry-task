@@ -34,9 +34,9 @@ func NewRepo(conf *config.Config) account.Repo {
 
 	db.SetMaxOpenConns(conf.MySQLConfig.MaxOpenConn)
 	db.SetMaxIdleConns(conf.MySQLConfig.MaxIdleConn)
-	db.SetConnMaxLifetime(time.Duration(conf.MySQLConfig.ConnMaxLifetime)*time.Second)
+	db.SetConnMaxLifetime(time.Duration(conf.MySQLConfig.ConnMaxLifetime) * time.Second)
 
-	r := &repo {
+	r := &repo{
 		db: db,
 	}
 

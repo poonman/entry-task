@@ -22,7 +22,7 @@ func (s *Service) SetKV(u *user.User, k, v string) (err error) {
 	return s.kvGateway.Set(u, k, v)
 }
 
-func (s *Service) GetKv(u *user.User, k string)(v string, err error) {
+func (s *Service) GetKv(u *user.User, k string) (v string, err error) {
 	if k == "" {
 		k = s.keys[0]
 	}

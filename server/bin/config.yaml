@@ -17,3 +17,6 @@ redis:
 quotaRepo:
   useMySQL: false
   fixedQuota: 10000
+
+storeRepo:
+  useRedis: false

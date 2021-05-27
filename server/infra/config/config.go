@@ -33,11 +33,16 @@ type QuotaRepoConfig struct {
 	FixedQuota int  `yaml:"fixedQuota"`
 }
 
+type StoreRepoConfig struct {
+	UseRedis bool `yaml:"useRedis"`
+}
+
 type Config struct {
 	ServerConfig    ServerConfig    `yaml:"server"`
 	RedisConfig     RedisConfig     `yaml:"redis"`
 	MySQLConfig     MySQLConfig     `yaml:"mysql"`
 	QuotaRepoConfig QuotaRepoConfig `yaml:"quotaRepo"`
+	StoreRepoConfig StoreRepoConfig `yaml:"storeRepo"`
 }
 
 func NewConfig() (c *Config) {
@@ -71,6 +76,13 @@ func NewConfig() (c *Config) {
 		log.Errorf("Failed to scan config. err:[%v]", err)
 		return
 	}
+
+	err = lion.Get("storeRepo").Scan(&c.StoreRepoConfig)
+	if err != nil {
+		log.Errorf("Failed to scan config. err:[%v]", err)
+		return
+	}
+
 	log.Infof("NewConfig success. config:[%+v]", c)
 
 	return c

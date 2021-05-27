@@ -53,11 +53,14 @@ func main() {
 	helper.MustContainerInvoke(c, func(conf *config.Config, interceptor *interceptor.Interceptor, h kv.StoreServer) {
 
 		log.Debug("start...")
-		//tlsConfig := conf.LoadTLSConfig()
-		//dora := server.NewServer(server.WithTlsConfig(tlsConfig))
+		var dora *server.Server
 
-		//dora := server.NewServer()
-		dora := server.NewServer(server.WithInterceptor(interceptor.Do))
+		if conf.ServerConfig.EnableTls {
+			tlsConfig := conf.LoadTLSConfig()
+			dora = server.NewServer(server.WithTlsConfig(tlsConfig), server.WithInterceptor(interceptor.Do))
+		} else {
+			dora = server.NewServer(server.WithInterceptor(interceptor.Do))
+		}
 
 		kv.RegisterStoreServer(dora, h)
 

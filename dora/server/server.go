@@ -153,13 +153,13 @@ func (s *Server) serveConn(conn net.Conn) {
 
 	// todo: check if server shutdown?
 
-	if tlsConn, ok := conn.(*tls.Conn); ok {
-
-		if err := tlsConn.Handshake(); err != nil {
-			log.Errorf("Failed to handshake tls conn. remoteAddr:[%s], err:[%v]", conn.RemoteAddr(), err)
-			return
-		}
-	}
+	//if tlsConn, ok := conn.(*tls.Conn); ok {
+	//
+	//	if err := tlsConn.Handshake(); err != nil {
+	//		log.Errorf("Failed to handshake tls conn. remoteAddr:[%s], err:[%v]", conn.RemoteAddr(), err)
+	//		return
+	//	}
+	//}
 
 	r := bufio.NewReaderSize(conn, ReaderBufferSize)
 	//w := bufio.NewWriter(conn)

@@ -1,8 +1,9 @@
 server:
-  listenAddress: 0.0.0.0:9000
+  listenAddress: 0.0.0.0:443
   serverPemFilepath: server.pem
   serverKeyFilepath: server.key
   clientPemFilepath: client.pem
+  enableTls: true
 
 mysql:
   sourceName: root:root@tcp(127.0.0.1:3306)/dora_server
@@ -16,7 +17,7 @@ redis:
 
 quotaRepo:
   useMySQL: false
-  fixedQuota: 10000
+  fixedQuota: 100000
 
 storeRepo:
-  useRedis: false
+  useRedis: true

@@ -1,10 +1,11 @@
 server:
-  address: 127.0.0.1:9000
+  address: 127.0.0.1:443
   maxActiveConn: 100
+  enableTls: true
 
 benchmark:
   concurrency: 12
-  requestNumPerConcurrency: 100
+  requestNumPerConcurrency: 1000
 
 cmd:
   commands:

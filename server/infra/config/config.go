@@ -14,6 +14,7 @@ type ServerConfig struct {
 	ServerKeyFilepath string `yaml:"serverKeyFilepath"`
 	ServerPemFilepath string `yaml:"serverPemFilepath"`
 	ClientPemFilepath string `yaml:"clientPemFilepath"`
+	EnableTls bool `yaml:"enableTls"`
 }
 
 type MySQLConfig struct {

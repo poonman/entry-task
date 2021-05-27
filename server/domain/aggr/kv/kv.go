@@ -5,8 +5,8 @@ import (
 	"github.com/poonman/entry-task/dora/status"
 )
 
-func NewKey(uid, originKey string) (key string) {
-	return fmt.Sprintf("%d:%s", uid, originKey)
+func NewKey(username, originKey string) (key string) {
+	return fmt.Sprintf("%s:%s", username, originKey)
 }
 
 func ValidateKey(key string) (err error) {

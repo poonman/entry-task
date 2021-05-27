@@ -14,12 +14,11 @@ type repo struct {
 	db *sql.DB
 }
 
-
 func (r *repo) Get(ctx context.Context, username string) (a *quota.Quota, err error) {
 
 	a = &quota.Quota{}
 	row := r.db.QueryRowContext(ctx, "select * from quota where username=?", username)
-	if err = row.Scan(&a.Username, &a.Read, &a.Write); err != nil {
+	if err = row.Scan(&a.Id, &a.Username, &a.ReadQuota, &a.WriteQuota); err != nil {
 		err = status.New(status.InternalServerError, "query account error")
 		return
 	}
@@ -35,7 +34,7 @@ func NewRepo(conf *config.Config) quota.Repo {
 
 	db.SetMaxOpenConns(conf.MySQLConfig.MaxOpenConn)
 	db.SetMaxIdleConns(conf.MySQLConfig.MaxIdleConn)
-	db.SetConnMaxLifetime(time.Duration(conf.MySQLConfig.ConnMaxLifetime))
+	db.SetConnMaxLifetime(time.Duration(conf.MySQLConfig.ConnMaxLifetime)*time.Second)
 
 	r := &repo {
 		db: db,

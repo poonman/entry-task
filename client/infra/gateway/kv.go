@@ -45,8 +45,8 @@ func (g *kvGateway) Set(u *user.User, key, value string) (err error) {
 
 	_, err = g.client.WriteSecureMessage(ctx, req)
 	if err != nil {
-		log.Errorf("Failed to write secure message. user:[%+v], key:[%s], value:[%s], err:[%v]",
-			u, key, value, err)
+		log.Errorf("Failed to write secure message. user:[%+v], err:[%v]",
+			u, err)
 		return
 	}
 	return
@@ -57,12 +57,15 @@ func (g *kvGateway) Get(u *user.User, key string) (value string, err error) {
 		Key:                  key,
 	}
 
-	ctx := context.TODO()
+	ctx := metadata.NewOutgoingContext(context.TODO(), map[string]string{
+		"username": u.Name,
+		"token": u.Token,
+	})
 
 	rsp, err := g.client.ReadSecureMessage(ctx, req)
 	if err != nil {
-		log.Errorf("Failed to read secure message. user:[%+v], key:[%s], err:[%v]",
-			u, key, err)
+		log.Errorf("Failed to read secure message. user:[%+v], err:[%v]",
+			u, err)
 		return
 	}
 

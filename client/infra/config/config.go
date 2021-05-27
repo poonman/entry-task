@@ -9,6 +9,7 @@ import (
 type Config struct {
 	ServerConfig ServerConfig `yaml:"server"`
 	BenchmarkConfig BenchmarkConfig `yaml:"benchmark"`
+	CmdConfig CmdConfig `yaml:"cmd"`
 }
 
 type ServerConfig struct {
@@ -19,6 +20,11 @@ type ServerConfig struct {
 type BenchmarkConfig struct {
 	Concurrency int `yaml:"concurrency"`
 	RequestNumPerConcurrency int `yaml:"requestNumPerConcurrency"`
+}
+
+type CmdConfig struct {
+	Commands []string `yaml:"commands"`
+	Username string `yaml:"username"`
 }
 
 func NewConfig() (c *Config) {
@@ -39,6 +45,12 @@ func NewConfig() (c *Config) {
 	}
 
 	err = lion.Get("benchmark").Scan(&c.BenchmarkConfig)
+	if err != nil {
+		log.Errorf("Failed to scan config. err:[%v]", err)
+		return
+	}
+
+	err = lion.Get("cmd").Scan(&c.CmdConfig)
 	if err != nil {
 		log.Errorf("Failed to scan config. err:[%v]", err)
 		return

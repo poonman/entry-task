@@ -46,8 +46,8 @@ func FromOutgoingContext(ctx context.Context) (md MD, ok bool) {
 }
 
 
-func FromIncomingContext(ctx context.Context) (md map[string]string, ok bool) {
-	md, ok = ctx.Value(mdIncomingKey{}).(map[string]string)
+func FromIncomingContext(ctx context.Context) (md MD, ok bool) {
+	md, ok = ctx.Value(mdIncomingKey{}).(MD)
 	return
 }
 

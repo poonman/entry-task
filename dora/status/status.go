@@ -40,6 +40,24 @@ func Error2Code(err error) Code {
 	return Unknown
 }
 
+func Error2Status(err error) *Status {
+	if err == nil {
+		return &Status{
+			Code:    Ok,
+			Message: "Ok",
+		}
+	}
+
+	if st, ok := err.(*Status); ok {
+		return st
+	}
+
+	return &Status{
+		Code:    Unknown,
+		Message: err.Error(),
+	}
+}
+
 type Code uint32
 
 const (
@@ -53,6 +71,7 @@ const (
 	Unknown          Code = 7
 	Unavailable      Code = 8
 	InternalServerError Code = 9
+	Max Code = 20
 )
 
 var code2Str = map[Code]string{

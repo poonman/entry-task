@@ -19,16 +19,30 @@ func (s *Service) BenchmarkRead() {
 
 	stats := make([]*stat.Stat, 0, s.conf.BenchmarkConfig.Concurrency)
 
+	u := &user.User{
+		Name:     "1",
+		Password: "1",
+		Token:    "",
+	}
+
+	err := s.Login(u)
+	if err != nil {
+		log.Errorf("failed to login. err:[%v]", err)
+		return
+	}
+
+
 	for i:=0; i<s.conf.BenchmarkConfig.Concurrency; i++ {
 		st := &stat.Stat{}
 
 		stats = append(stats, st)
 
-		go func(no int) {
 
-			s.RequestRead(no, st)
+		go func(no int, u *user.User) {
+
+			s.RequestRead(u, no, st)
 			wg.Done()
-		}(i)
+		}(i, u)
 	}
 
 	wg.Wait()
@@ -71,16 +85,21 @@ func (s *Service) BenchmarkRead() {
 	log.Infof("report:[%s]", rep)
 }
 
-func (s *Service) RequestRead(concurrencyNo int, stat *stat.Stat) {
+func (s *Service) RequestRead(u *user.User, concurrencyNo int, stat *stat.Stat) {
 
 
 	for i := 1; i <= s.conf.BenchmarkConfig.RequestNumPerConcurrency; i++ {
-		tmp := strconv.Itoa(concurrencyNo*1000+i)
-		u := &user.User{
-			Name:     tmp,
-			Password: tmp,
-			Token:    "",
+		if u == nil {
+			tmp := strconv.Itoa(concurrencyNo*1000+i)
+			u = &user.User{
+				Name:     tmp,
+				Password: tmp,
+				Token:    "",
+			}
+
+			_ = s.Login(u)
 		}
+
 		before := time.Now()
 		_, err := s.kvGateway.Get(u, s.keys[0])
 		rt := time.Now().Sub(before)

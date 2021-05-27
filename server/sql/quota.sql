@@ -1,0 +1,8 @@
+
+CREATE TABLE IF NOT EXISTS `quota` (
+    `id` INT UNSIGNED AUTO_INCREMENT,
+    `username` VARCHAR(20) NOT NULL,
+    `read_quota` INT NOT NULL DEFAULT 0,
+    `write_quota` INT NOT NULL DEFAULT 0,
+    PRIMARY KEY ( `id` )
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

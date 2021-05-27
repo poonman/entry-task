@@ -13,13 +13,25 @@ service Store {
     rpc ReadSecureMessage(ReadSecureMessageReq) returns (ReadSecureMessageRsp);
 };
 
+message Status {
+    CODE    code    = 1;
+    string  message = 2;
+}
+
+enum CODE {
+    OK = 0;
+    INCORRECT_USERNAME_OR_PASSWORD = 1000;
+    KEY_NOT_EXIST = 1001;
+}
+
 message LoginReq {
     string username = 1;
     string password = 2;
 }
 
 message LoginRsp {
-    string token = 1;
+    Status  status  = 1;
+    string  token   = 2;
 }
 
 message WriteSecureMessageReq {
@@ -28,7 +40,8 @@ message WriteSecureMessageReq {
 }
 
 message WriteSecureMessageRsp {
-    string msg = 2;
+    string key = 1;
+    string value = 2;
 }
 
 message ReadSecureMessageReq {
@@ -36,5 +49,6 @@ message ReadSecureMessageReq {
 }
 
 message ReadSecureMessageRsp {
-    string value = 1;
+    Status  status  = 1;
+    string  value   = 2;
 }

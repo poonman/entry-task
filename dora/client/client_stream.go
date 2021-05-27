@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/poonman/entry-task/dora/codec"
 	"github.com/poonman/entry-task/dora/codec/proto"
-	"github.com/poonman/entry-task/dora/log"
 	"github.com/poonman/entry-task/dora/metadata"
 	"github.com/poonman/entry-task/dora/protocol"
 	"github.com/poonman/entry-task/dora/status"
@@ -39,7 +38,7 @@ func NewStream(ctx context.Context, method string, cc *Connection) *Stream {
 }
 
 func (s *Stream) SendMsg(req interface{}) (err error) {
-	log.Info("[dora] SendMsg begin...")
+//	log.Info("[dora] SendMsg begin...")
 
 	msg, err := s.prepareMsg(req)
 	if err != nil {
@@ -67,7 +66,7 @@ func (s *Stream) prepareMsg(req interface{}) (msg *protocol.Message, err error) 
 				Seq:           s.cc.seq,
 			},
 			Method: s.method,
-			Meta:   nil, // todo: auth
+			Meta:   nil,
 		},
 		Payload: payload,
 	}
@@ -77,6 +76,8 @@ func (s *Stream) prepareMsg(req interface{}) (msg *protocol.Message, err error) 
 	if ok {
 		msg.PkgHead.Meta = md
 	}
+
+//	log.Debugf("md:[%v]", md)
 
 	return
 }

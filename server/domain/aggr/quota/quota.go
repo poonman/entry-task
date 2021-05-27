@@ -1,7 +1,8 @@
 package quota
 
 type Quota struct {
+	Id int
 	Username string
-	Read int
-	Write int
+	ReadQuota int
+	WriteQuota int
 }

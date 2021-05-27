@@ -5,8 +5,11 @@ server:
   clientPemFilepath: client.pem
 
 mysql:
-  url:
+  sourceName: root:root@tcp(127.0.0.1:3306)/dora_server
+  maxOpenConn: 100
+  maxIdleConn: 16
+  connMaxLifetime: 100 # second
 
 redis:
-  address:
-  password:
+  address: 127.0.0.1:6379
+  password: "123456"

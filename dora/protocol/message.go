@@ -36,7 +36,7 @@ func (m *Message) Clone() *Message {
 		PkgHead: &PkgHead{
 			Head:   &head,
 			Method: m.PkgHead.Method,
-			Meta:   m.PkgHead.Meta,
+			Meta:   make(map[string]string),
 		},
 	}
 	return mm
@@ -121,6 +121,11 @@ func WriteMessage(conn net.Conn, msg *Message) (err error) {
 	if err != nil {
 		return
 	}
+
+	//ph := &PkgHead{}
+	//
+	//_ = proto.Unmarshal(pkgBytes, ph)
+	//log.Debugf("ph: [%+v]", ph)
 
 	pkgLen := uint32(len(pkgBytes))
 	payloadLen := uint32(len(msg.Payload))

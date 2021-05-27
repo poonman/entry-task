@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"github.com/poonman/entry-task/dora/log"
 	"github.com/poonman/entry-task/dora/status"
 	uuid "github.com/satori/go.uuid"
@@ -11,7 +12,18 @@ var (
 	ErrUnauthenticated = status.New(status.Unauthenticated, "unauthenticated")
 )
 
-func (s *Service) Login(username, password string) (token string, err error) {
+func (s *Service) Login(ctx context.Context, username, password string) (token string, err error) {
+
+	acc, err := s.accountRepo.Get(ctx, username)
+	if err != nil {
+		log.Errorf("failed to get account. username:[%s], err:[%v]", username, err)
+		return
+	}
+
+	err = acc.ValidatePassword(password)
+	if err != nil {
+		return
+	}
 
 	// todo: validate username and password
 	token = getToken()

@@ -18,7 +18,7 @@ func (r *repo) Get(ctx context.Context, username string) (a *account.Account, er
 
 	a = &account.Account{}
 	row := r.db.QueryRowContext(ctx, "select * from account where username=?", username)
-	if err = row.Scan(&a.Username, &a.Password); err != nil {
+	if err = row.Scan(&a.Id, &a.Username, &a.Password); err != nil {
 		err = status.New(status.InternalServerError, "query account error")
 		return
 	}
@@ -34,7 +34,7 @@ func NewRepo(conf *config.Config) account.Repo {
 
 	db.SetMaxOpenConns(conf.MySQLConfig.MaxOpenConn)
 	db.SetMaxIdleConns(conf.MySQLConfig.MaxIdleConn)
-	db.SetConnMaxLifetime(time.Duration(conf.MySQLConfig.ConnMaxLifetime))
+	db.SetConnMaxLifetime(time.Duration(conf.MySQLConfig.ConnMaxLifetime)*time.Second)
 
 	r := &repo {
 		db: db,

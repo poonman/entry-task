@@ -3,5 +3,13 @@ server:
   maxActiveConn: 10
 
 benchmark:
-  concurrency: 10
-  requestNumPerConcurrency: 1000
+  concurrency: 12
+  requestNumPerConcurrency: 100
+
+cmd:
+  commands:
+    - benchmark
+#    - login
+#    - write
+#    - read
+  username: "1"

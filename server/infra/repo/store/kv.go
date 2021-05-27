@@ -31,7 +31,7 @@ func (r *repo) Get(key string) (value string, err error) {
 	if err != nil {
 		if err == redis.ErrNil {
 			value = ""
-			err = nil
+			err = status.ErrNotFound
 			return
 		}
 

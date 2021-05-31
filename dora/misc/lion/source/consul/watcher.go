@@ -4,10 +4,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/hashicorp/consul/api"
-	"github.com/hashicorp/consul/api/watch"
 	"github.com/poonman/entry-task/dora/misc/lion/encoder"
 	"github.com/poonman/entry-task/dora/misc/lion/source"
+	"github.com/hashicorp/consul/api"
+	"github.com/hashicorp/consul/api/watch"
 )
 
 type watcher struct {

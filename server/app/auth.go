@@ -2,21 +2,19 @@ package app
 
 import (
 	"context"
-	"github.com/poonman/entry-task/dora/log"
 	"github.com/poonman/entry-task/dora/status"
 	uuid "github.com/satori/go.uuid"
 	"strings"
 )
 
 var (
-	ErrUnauthenticated = status.New(status.Unauthenticated, "unauthenticated")
+	ErrUnauthenticated = status.New(status.Unauthenticated, "unauthenticated due to an invalid token")
 )
 
 func (s *Service) Login(ctx context.Context, username, password string) (token string, err error) {
 
 	acc, err := s.accountRepo.Get(ctx, username)
 	if err != nil {
-		log.Errorf("failed to get account. username:[%s], err:[%v]", username, err)
 		return
 	}
 
@@ -25,13 +23,12 @@ func (s *Service) Login(ctx context.Context, username, password string) (token s
 		return
 	}
 
-	// todo: validate username and password
+	// FIXME: here is a simple way to generate a token.
 	token = getToken()
 
-	// 写入session中
+	// FIXME: just save in memory without ttl, the best way is saving to redis if need
 	err = s.sessionRepo.Save(username, token)
 	if err != nil {
-		log.Errorf("Failed to save user token. err:[%v]", err)
 		return
 	}
 
@@ -44,7 +41,6 @@ func (s *Service) Authenticate(username, token string) (err error) {
 	)
 	origToken, err = s.sessionRepo.Get(username)
 	if err != nil {
-		log.Errorf("Failed to get user token. err:[%v]", err)
 		return
 	}
 

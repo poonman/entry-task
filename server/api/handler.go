@@ -70,6 +70,7 @@ func (h *Handler) ReadSecureMessage(ctx context.Context, req *kv.ReadSecureMessa
 	}
 
 	rsp.Value = value
+	rsp.Status = excp.Error2Status(nil)
 
 	return
 }

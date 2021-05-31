@@ -2,8 +2,8 @@ package proto
 
 import (
 	"fmt"
-	"github.com/golang/protobuf/proto"
 	"github.com/poonman/entry-task/dora/codec"
+	"github.com/golang/protobuf/proto"
 )
 
 const Name = "proto"

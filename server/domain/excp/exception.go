@@ -1,13 +1,12 @@
 package excp
 
 import (
-	"errors"
 	"github.com/poonman/entry-task/dora/status"
 	"github.com/poonman/entry-task/server/idl/kv"
 )
 
 var (
-	ErrIncorrectUsernameOrPassword = errors.New("incorrect username or password")
+	ErrIncorrectUsernameOrPassword = status.New(status.Code(kv.CODE_INCORRECT_USERNAME_OR_PASSWORD), "incorrect username or password")
 	ErrKeyNotExist                 = status.New(status.Code(kv.CODE_KEY_NOT_EXIST), "key not exist")
 )
 

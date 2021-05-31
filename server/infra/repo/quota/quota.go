@@ -3,7 +3,7 @@ package quota
 import (
 	"context"
 	"database/sql"
-	"github.com/poonman/entry-task/dora/log"
+	"github.com/poonman/entry-task/dora/misc/log"
 	"github.com/poonman/entry-task/dora/status"
 	"github.com/poonman/entry-task/server/domain/aggr/quota"
 	"github.com/poonman/entry-task/server/infra/config"
@@ -28,10 +28,6 @@ var (
 )
 
 func (r *repo) Get(ctx context.Context, username string) (a *quota.Quota, err error) {
-
-	defer func() {
-		log.Debugf("quota:[%+v]", a)
-	}()
 
 	if r.conf.QuotaRepoConfig.FixedQuota > 0 {
 		return &quota.Quota{

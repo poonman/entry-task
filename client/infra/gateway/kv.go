@@ -7,12 +7,22 @@ import (
 	"github.com/poonman/entry-task/client/idl/kv"
 	"github.com/poonman/entry-task/client/infra/config"
 	"github.com/poonman/entry-task/dora/client"
-	"github.com/poonman/entry-task/dora/log"
 	"github.com/poonman/entry-task/dora/metadata"
+	"github.com/poonman/entry-task/dora/misc/log"
+	"github.com/poonman/entry-task/dora/status"
 )
 
 type kvGateway struct {
-	client kv.StoreClient
+	client *client.Client
+	kvClient kv.StoreClient
+}
+
+func Status2Error(st *kv.Status) (err error) {
+	if st.Code == 0 {
+		return nil
+	}
+
+	return status.New(status.Code(st.Code), st.Message)
 }
 
 func (g *kvGateway) Login(u *user.User) (err error) {
@@ -21,13 +31,14 @@ func (g *kvGateway) Login(u *user.User) (err error) {
 		Password: u.Password,
 	}
 
-	rsp, err := g.client.Login(context.TODO(), req)
+	rsp, err := g.kvClient.Login(context.TODO(), req)
 	if err != nil {
 		log.Errorf("Failed to login. username:[%s], err:[%s]", u.Name, err)
 		return
 	}
 
 	if rsp.Status.Code != kv.CODE_OK {
+		err = Status2Error(rsp.Status)
 		return
 	}
 
@@ -47,7 +58,7 @@ func (g *kvGateway) Set(u *user.User, key, value string) (err error) {
 		"token":    u.Token,
 	})
 
-	_, err = g.client.WriteSecureMessage(ctx, req)
+	_, err = g.kvClient.WriteSecureMessage(ctx, req)
 	if err != nil {
 		log.Errorf("Failed to write secure message. user:[%+v], err:[%v]",
 			u, err)
@@ -66,10 +77,17 @@ func (g *kvGateway) Get(u *user.User, key string) (value string, err error) {
 		"token":    u.Token,
 	})
 
-	rsp, err := g.client.ReadSecureMessage(ctx, req)
+	log.Debugf("get begin...")
+	rsp, err := g.kvClient.ReadSecureMessage(ctx, req)
 	if err != nil {
 		log.Errorf("Failed to read secure message. user:[%+v], err:[%v]",
 			u, err)
+		return
+	}
+
+	log.Debugf("get rsp:%+v\n", rsp)
+	if rsp.Status.Code != kv.CODE_OK {
+		err = Status2Error(rsp.Status)
 		return
 	}
 
@@ -78,8 +96,11 @@ func (g *kvGateway) Get(u *user.User, key string) (value string, err error) {
 	return
 }
 
+func (g *kvGateway) Stop() {
+	g.client.Stop()
+}
+
 func NewKvGateway(conf *config.Config) gateway.KvGateway {
-	log.Infof("NewKvGateway begin...")
 
 	var cli *client.Client
 
@@ -90,14 +111,12 @@ func NewKvGateway(conf *config.Config) gateway.KvGateway {
 		cli = client.NewClient(conf.ServerConfig.Address, client.WithConnSize(conf.ServerConfig.MaxActiveConn))
 	}
 
-
 	kvClient := kv.NewStoreClient(cli)
 
 	g := &kvGateway{
-		client: kvClient,
+		client: cli,
+		kvClient: kvClient,
 	}
-
-	log.Infof("NewKvGateway success...")
 
 	return g
 }

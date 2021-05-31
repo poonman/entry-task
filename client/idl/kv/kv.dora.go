@@ -12,6 +12,7 @@ import (
 import (
 	context "context"
 	client "github.com/poonman/entry-task/dora/client"
+	log "github.com/poonman/entry-task/dora/misc/log"
 	server "github.com/poonman/entry-task/dora/server"
 	status "github.com/poonman/entry-task/dora/status"
 )
@@ -106,6 +107,11 @@ func _StoreServer_Login_Handler(srv interface{}, ctx context.Context, dec func(i
 
 	out := new(LoginRsp)
 
+	log.Debugf("[idl] Login begin. req:[%+v]", in)
+	defer func() {
+		log.Debugf("[idl] Login end.   rsp:[%+v], err:[%v]\n\n", out, err)
+	}()
+
 	if interceptor == nil {
 		err = srv.(StoreServer).Login(ctx, in, out)
 		return out, err
@@ -130,6 +136,11 @@ func _StoreServer_WriteSecureMessage_Handler(srv interface{}, ctx context.Contex
 
 	out := new(WriteSecureMessageRsp)
 
+	log.Debugf("[idl] WriteSecureMessage begin. req:[%+v]", in)
+	defer func() {
+		log.Debugf("[idl] WriteSecureMessage end.   rsp:[%+v], err:[%v]\n\n", out, err)
+	}()
+
 	if interceptor == nil {
 		err = srv.(StoreServer).WriteSecureMessage(ctx, in, out)
 		return out, err
@@ -153,6 +164,11 @@ func _StoreServer_ReadSecureMessage_Handler(srv interface{}, ctx context.Context
 	}
 
 	out := new(ReadSecureMessageRsp)
+
+	log.Debugf("[idl] ReadSecureMessage begin. req:[%+v]", in)
+	defer func() {
+		log.Debugf("[idl] ReadSecureMessage end.   rsp:[%+v], err:[%v]\n\n", out, err)
+	}()
 
 	if interceptor == nil {
 		err = srv.(StoreServer).ReadSecureMessage(ctx, in, out)

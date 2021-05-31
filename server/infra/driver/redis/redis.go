@@ -1,6 +1,9 @@
 package redis
 
-import "github.com/poonman/entry-task/server/infra/config"
+import (
+	"github.com/poonman/entry-task/server/infra/config"
+	"time"
+)
 import "github.com/gomodule/redigo/redis"
 
 func NewRedisPool(conf *config.Config) *redis.Pool {
@@ -21,6 +24,13 @@ func NewRedisPool(conf *config.Config) *redis.Pool {
 			//}
 			return c, nil
 		},
+		DialContext:     nil,
+		TestOnBorrow:    nil,
+		MaxIdle:         conf.RedisConfig.MaxIdle,
+		MaxActive:       conf.RedisConfig.MaxActive,
+		IdleTimeout:     100 * time.Second,
+		Wait:            false,
+		MaxConnLifetime: 500 * time.Second,
 	}
 
 	return pool

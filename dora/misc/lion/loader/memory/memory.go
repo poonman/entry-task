@@ -59,7 +59,7 @@ func (m *memory) watch(idx int, s source.Source) {
 
 			// save
 			m.sets[idx] = cs
-			//fmt.Printf("memory watch change cs :%+v len : %d\n",string(cs.Data),len(cs.Data))
+			//fmt.Printf("memory watch change cs :%+v len : %d\n",string(cs.Payload),len(cs.Payload))
 
 			// merge sets
 			set, err := m.opts.Reader.Merge(m.sets...)
@@ -67,7 +67,7 @@ func (m *memory) watch(idx int, s source.Source) {
 				m.Unlock()
 				return err
 			}
-			//fmt.Printf("memory watch change set :%+v ,len : %d\n",string(set.Data),len(set.Data))
+			//fmt.Printf("memory watch change set :%+v ,len : %d\n",string(set.Payload),len(set.Payload))
 
 			// set values
 			m.vals, _ = m.opts.Reader.Values(set)

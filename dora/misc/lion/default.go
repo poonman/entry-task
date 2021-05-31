@@ -238,7 +238,7 @@ func (w *watcher) Next() (reader.Value, error) {
 			continue
 		}
 
-		//fmt.Println("defalut Next ",string(s.ChangeSet.Data),len(s.ChangeSet.Data))
+		//fmt.Println("defalut Next ",string(s.ChangeSet.Payload),len(s.ChangeSet.Payload))
 		v, err := w.rd.Values(s.ChangeSet)
 		if err != nil {
 			return nil, err

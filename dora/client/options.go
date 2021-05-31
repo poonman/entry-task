@@ -9,7 +9,7 @@ import (
 type Options struct {
 	tlsConfig *tls.Config
 
-	connectTimeout time.Duration
+	dialTimeout time.Duration
 
 	connSize int
 }
@@ -19,6 +19,12 @@ type Option func(options *Options)
 func WithTlsConfig(config *tls.Config) Option {
 	return func(options *Options) {
 		options.tlsConfig = config
+	}
+}
+
+func WithDialTimeout(timeout time.Duration) Option {
+	return func(options *Options) {
+		options.dialTimeout = timeout
 	}
 }
 

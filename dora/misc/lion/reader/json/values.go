@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	simple "github.com/bitly/go-simplejson"
 	"github.com/poonman/entry-task/dora/misc/lion/reader"
 	"github.com/poonman/entry-task/dora/misc/lion/source"
+	simple "github.com/bitly/go-simplejson"
 )
 
 type jsonValues struct {

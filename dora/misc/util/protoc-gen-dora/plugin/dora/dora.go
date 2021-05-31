@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	pb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/poonman/entry-task/dora/misc/util/protoc-gen-dora/generator"
+	pb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 )
 
 // Paths for packages used by code generated in this file,
@@ -16,6 +16,7 @@ const (
 	contextPkgPath = "context"
 	clientPkgPath  = "github.com/poonman/entry-task/dora/client"
 	serverPkgPath  = "github.com/poonman/entry-task/dora/server"
+	logPkgPath  = "github.com/poonman/entry-task/dora/misc/log"
 )
 
 func init() {
@@ -41,6 +42,7 @@ var (
 	contextPkg string
 	clientPkg  string
 	serverPkg  string
+	logPkg string
 	pkgImports map[generator.GoPackageName]bool
 )
 
@@ -51,6 +53,7 @@ func (g *doraPlugin) Init(gen *generator.Generator) {
 	contextPkg = generator.RegisterUniquePackageName("context", nil)
 	clientPkg = generator.RegisterUniquePackageName("client", nil)
 	serverPkg = generator.RegisterUniquePackageName("server", nil)
+	logPkg = generator.RegisterUniquePackageName("log", nil)
 }
 
 // Given a type name defined in a .proto, return its object.
@@ -95,6 +98,8 @@ func (g *doraPlugin) GenerateImports(file *generator.FileDescriptor, imports map
 	g.P(contextPkg, " ", strconv.Quote(path.Join(g.gen.ImportPrefix, contextPkgPath)))
 	g.P(clientPkg, " ", strconv.Quote(path.Join(g.gen.ImportPrefix, clientPkgPath)))
 	g.P(serverPkg, " ", strconv.Quote(path.Join(g.gen.ImportPrefix, serverPkgPath)))
+	g.P(logPkg, " ", strconv.Quote(path.Join(g.gen.ImportPrefix, logPkgPath)))
+
 	g.P(")")
 	g.P()
 
@@ -232,6 +237,11 @@ func (g *doraPlugin) generateDoraService(file *generator.FileDescriptor, service
 		g.P("}")
 		g.P()
 		g.P("out := new(", outType, ")")
+		g.P()
+		g.P("log.Debugf(\"[idl] ", methName, " begin. req:[%+v]\", in)")
+		g.P("defer func() {")
+		g.P("log.Debugf(\"[idl] ", methName, " end.   rsp:[%+v], err:[%v]\\n\\n\", out, err)")
+		g.P("}()")
 		g.P()
 		g.P("if interceptor == nil {")
 		g.P("err = srv.(", servName, "Server).", methName, "(ctx, in, out)")

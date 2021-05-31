@@ -9,8 +9,8 @@ import (
 )
 
 type repo struct {
-	pool *redis.Pool
-	conf *config.Config
+	pool  *redis.Pool
+	conf  *config.Config
 	value string
 }
 
@@ -20,7 +20,7 @@ func (r *repo) Set(key, value string) (err error) {
 
 	_, err = conn.Do("SET", key, value)
 	if err != nil {
-		err = status.New(status.InternalServerError, err.Error())
+		err = status.New(status.InternalServerError, "set key error. "+err.Error())
 		return
 	}
 
@@ -45,7 +45,7 @@ func (r *repo) Get(key string) (value string, err error) {
 			return
 		}
 
-		err = status.New(status.InternalServerError, err.Error())
+		err = status.New(status.InternalServerError, "get key error. "+err.Error())
 		return
 	}
 
@@ -63,8 +63,8 @@ func newValue(id int) (key string) {
 
 func NewRepo(conf *config.Config, pool *redis.Pool) kv.Repo {
 	r := &repo{
-		pool: pool,
-		conf:conf,
+		pool:  pool,
+		conf:  conf,
 		value: newValue(1),
 	}
 

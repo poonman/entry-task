@@ -1,1 +1,1 @@
-protoc -I. --go_out=. rpc.proto
+protoc -I. --go_out=. protocol.proto

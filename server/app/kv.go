@@ -14,12 +14,7 @@ func (s *Service) WriteSecureMessage(username, key, value string) (err error) {
 
 	tmpKey := kv.NewKey(username, key)
 
-	err = s.kvRepo.Set(tmpKey, value)
-	if err != nil {
-
-	}
-
-	return
+	return s.kvRepo.Set(tmpKey, value)
 }
 
 func (s *Service) ReadSecureMessage(username, key string) (value string, err error) {

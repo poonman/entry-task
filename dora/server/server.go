@@ -1,136 +1,91 @@
 package server
 
 import (
-	"bufio"
 	"context"
-	"crypto/tls"
-	"errors"
 	"github.com/poonman/entry-task/dora/codec"
-	"github.com/poonman/entry-task/dora/codec/proto"
-	"github.com/poonman/entry-task/dora/log"
+	protoCodec "github.com/poonman/entry-task/dora/codec/proto"
 	"github.com/poonman/entry-task/dora/metadata"
+	"github.com/poonman/entry-task/dora/misc/log"
 	"github.com/poonman/entry-task/dora/protocol"
 	"github.com/poonman/entry-task/dora/status"
-	"io"
-	"net"
+	"github.com/poonman/entry-task/dora/transport"
+	"github.com/poonman/entry-task/dora/transport/nap"
+	"github.com/golang/protobuf/proto"
 	"runtime"
 	"strconv"
 	"sync"
 	"time"
 )
 
-const (
-	// ReaderBufferSize is used for bufio reader.
-	ReaderBufferSize = 1024
-	// WriterBufferSize is used for bufio writer.
-	WriterBufferSize = 1024
-)
-
-var (
-	ErrServerClosed = errors.New("server closed")
-)
-
 type Server struct {
-	mu sync.RWMutex
-	ln net.Listener
+	mu              sync.RWMutex
+	listener        transport.Listener
+	activeTransport map[transport.ServerTransport]struct{}
 
-	activeConnMap map[net.Conn]struct{}
-	//seq           uint64
-
+	// server implement. it is a user side handler
 	serverImpl interface{}
+	// methods is a set of method descriptor of user side handler
 	methods    map[string]*MethodDesc
 
 	opts *Options
 
-	stopCh chan struct{}
+	// ctx is a parent ctx that manage all goroutines lifecycle
+	ctx context.Context
+	cancel context.CancelFunc
+
 }
 
 func NewServer(opts ...Option) *Server {
 	s := &Server{
 		mu:            sync.RWMutex{},
-		ln:            nil,
-		activeConnMap: make(map[net.Conn]struct{}),
-		serverImpl:    nil,
-		methods:       make(map[string]*MethodDesc),
-		opts:          &Options{},
-		stopCh:        make(chan struct{}),
+
+		listener:        nil,
+		activeTransport: make(map[transport.ServerTransport]struct{}),
+		serverImpl:      nil,
+		methods:         make(map[string]*MethodDesc),
+		opts:            &Options{},
 	}
 
 	for _, o := range opts {
 		o(s.opts)
 	}
 
-	log.Info("NewServer success...")
+	s.ctx, s.cancel = context.WithCancel(context.TODO())
+
+	log.Info("[dora] New server success.")
 
 	return s
 }
 
 func (s *Server) Serve(address string) (err error) {
 	var (
-		ln        net.Listener
-		tempDelay time.Duration
+		listener        transport.Listener
 	)
 
-	log.Info("[dora] Serve begin...")
-
-	if s.opts.tlsConfig != nil {
-		ln, err = tls.Listen("tcp", address, s.opts.tlsConfig)
-	} else {
-		ln, err = net.Listen("tcp", address)
-	}
+	listener, err = nap.NewListener(&nap.ListenerOptions{
+		Address:   address,
+		TlsConfig: s.opts.tlsConfig,
+	})
 	if err != nil {
-		log.Errorf("Failed to listen. err:[%v]", err)
+		log.Errorf("[dora] Failed to listen. address:[%v], err:[%v]", address, err)
 		return
 	}
 
 	s.mu.Lock()
-	s.ln = ln
+	s.listener = listener
 	s.mu.Unlock()
 
-	log.Info("[dora] Listen success...")
-
-	for {
-		conn, err1 := ln.Accept()
-		if err1 != nil {
-			// check if server is stopped
-			select {
-			case <-s.stopCh:
-				return ErrServerClosed
-			default:
-				// do nothing
-			}
-
-			if ne, ok := err1.(net.Error); ok && ne.Temporary() {
-				if tempDelay == 0 {
-					tempDelay = 5 * time.Millisecond
-				} else {
-					tempDelay *= 2
-				}
-
-				if max := 1 * time.Second; tempDelay > max {
-					tempDelay = max
-				}
-
-				log.Errorf("Failed to accept. err:[%v], tempDelay:[%v]", err1, tempDelay)
-				time.Sleep(tempDelay)
-				continue
-			}
-
-			return err1
-		}
-
-		tempDelay = 0
-
-		s.mu.Lock()
-		s.activeConnMap[conn] = struct{}{}
-		s.mu.Unlock()
-
-		go s.serveConn(conn)
+	err = s.listener.Accept(s.ctx, s.serveTransport)
+	if err != nil {
+		log.Errorf("[dora] Failed to accept. listen:[%s], err:[%v]", s.listener.Address(), err)
+		return
 	}
+
+	return
 }
 
-func (s *Server) serveConn(conn net.Conn) {
-	log.Infof("[dora] serverConn begin... remote:[%s]", conn.RemoteAddr().String())
+func (s *Server) serveTransport(t transport.ServerTransport) {
+	log.Infof("[dora] Begin serve transport... remote:[%s]", t.Remote())
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -141,117 +96,86 @@ func (s *Server) serveConn(conn net.Conn) {
 				ss = size
 			}
 			buf = buf[:ss]
-			log.Errorf("serving %s panic error: %s, stack:\n %s", conn.RemoteAddr(), err, buf)
+			log.Errorf("[dora] Serving %s panic error: %s, stack:\n %s", t.Remote(), err, buf)
 		}
 
 		s.mu.Lock()
-		delete(s.activeConnMap, conn)
+		delete(s.activeTransport, t)
 		s.mu.Unlock()
-		conn.Close()
+		t.Close()
 
 	}()
 
-	// todo: check if server shutdown?
+	err := t.Serve(func(stream transport.ServerStream) (err error){
+		// TODO: server side should implement a control buffer to send and recv
+		ctx, _ := context.WithTimeout(context.TODO(), 5*time.Second)
 
-	//if tlsConn, ok := conn.(*tls.Conn); ok {
-	//
-	//	if err := tlsConn.Handshake(); err != nil {
-	//		log.Errorf("Failed to handshake tls conn. remoteAddr:[%s], err:[%v]", conn.RemoteAddr(), err)
-	//		return
-	//	}
-	//}
+		msg := &protocol.Pkg{}
 
-	r := bufio.NewReaderSize(conn, ReaderBufferSize)
-	//w := bufio.NewWriter(conn)
-
-	for {
-		// check if server is stopped
-		select {
-		case <-s.stopCh:
-			return
-		default:
-			// do nothing
-		}
-
-		ctx := context.Background()
-
-		//log.Debugf("begin recv request...")
-
-		req, err := s.recvRequest(r)
+		err = proto.Unmarshal(stream.GetPayload(), msg)
 		if err != nil {
-			if err == io.EOF {
-				log.Warnf("recv request error. EOF")
-			} else {
-				log.Errorf("Failed to recv request. err:[%v]", err)
-			}
-
+			log.Errorf("[dora] Failed to unmarshal incoming message. err:[%v]", err)
+			err = status.New(status.Internal, err.Error())
 			return
 		}
 
-		rsp, err := s.handleRequest(ctx, req)
-		if err != nil {
-			// just log. rsp include err
-			log.Errorf("Failed to handle request. err:[%v]", err)
+		if msg.Head == nil {
+			log.Errorf("[dora] A bad request. head is nil.")
+			err = status.ErrBadRequest
+			return
 		}
 
-		err = s.sendResponse(rsp, conn)
+		var rsp *protocol.Pkg
+		var out []byte
+
+		rsp  = s.handleRequest(ctx, msg)
+
+		out, err = proto.Marshal(rsp)
 		if err != nil {
-			log.Errorf("Failed to send response. err:[%v]", err)
+			// should not fail. thus how to send response?
+			// client-end need timeout to finish this request
+			log.Errorf("[dora] Failed to marshal outgoing message. err:[%v]", err)
+			err = status.New(status.Internal, err.Error())
+			return
 		}
 
-	}
-}
-
-func (s *Server) recvRequest(r io.Reader) (msg *protocol.Message, err error) {
-	msg, err = protocol.ReadMessage(r)
-
-	//	log.Infof("[dora] recvRequest. msg:[%+v]", msg)
-
-	return
-}
-
-func (s *Server) sendResponse(rsp *protocol.Message, w net.Conn /*w io.Writer*/) (err error) {
-	//log.Infof("[dora] sendResponse begin. rsp:[%+v]", rsp)
-
-	err = protocol.WriteMessage(w, rsp)
+		err = t.Send(stream, out)
+		if err != nil {
+			log.Errorf("[dora] Failed to send outgoing message. err:[%v]", err)
+			return
+		}
+		return
+	})
 	if err != nil {
-		return err
+		log.Errorf("[dora] Failed to serve transport. err:[%v]", err)
 	}
-
-	//log.Infof("[dora] sendResponse success.")
-	return
 }
 
-func (s *Server) handleRequest(ctx context.Context, reqMsg *protocol.Message) (rspMsg *protocol.Message, err error) {
+func (s *Server) handleRequest(ctx context.Context, in *protocol.Pkg) (out *protocol.Pkg) {
 
-	//log.Infof("[dora] handleRequest begin. ")
+	methodName := in.Head.Method
 
-	methodName := reqMsg.PkgHead.Method
-
-	if len(reqMsg.PkgHead.Meta) != 0 {
-		ctx = metadata.NewIncomingContext(ctx, reqMsg.PkgHead.Meta)
+	if len(in.Head.Meta) != 0 {
+		ctx = metadata.NewIncomingContext(ctx, in.Head.Meta)
 	}
 
-	rspMsg = reqMsg.Clone()
-
-	rspMsg.SetMessageType(protocol.Head_Response)
+	out = in.Clone()
 
 	s.mu.RLock()
 	method, ok := s.methods[methodName]
 	s.mu.RUnlock()
 
 	if !ok {
-		err = status.Newf(status.Unimplemented, "method '%s' is unimplemented", methodName)
-		handleError(rspMsg, err)
+		handleError(out, status.Newf(status.Unimplemented, "method '%s' is unimplemented", methodName))
 		return
 	}
 
-	c := s.getCodec(reqMsg.PkgHead.Head.SerializeType)
+	c := s.getCodec(in.Head.SerializeType)
 
 	df := func(v interface{}) error {
-		err := c.Unmarshal(reqMsg.Payload, v)
+		err := c.Unmarshal(in.Payload, v)
 		if err != nil {
-			err = status.New(status.Internal, "unmarshal request payload error")
+			err = status.New(status.Internal, "unmarshal incoming payload error")
 			return err
 		}
 
@@ -261,48 +185,47 @@ func (s *Server) handleRequest(ctx context.Context, reqMsg *protocol.Message) (r
 	var (
 		rsp     interface{}
 		payload []byte
+		err error
 	)
 
 	rsp, err = method.Handler(s.serverImpl, ctx, df, s.opts.Interceptor)
 	if err != nil {
-		handleError(rspMsg, err)
+		handleError(out, err)
 		return
 	}
 
 	payload, err = c.Marshal(rsp)
 	if err != nil {
-		err = status.New(status.Internal, "marshal response payload error")
-		handleError(rspMsg, err)
+		err = status.New(status.Internal, "marshal outgoing payload error")
+		handleError(out, err)
 		return
 	}
 
-	rspMsg.Payload = payload
-
-	//log.Infof("handleRequest success.")
+	out.Payload = payload
 
 	return
 }
 
-func handleError(m *protocol.Message, err error) {
+func handleError(m *protocol.Pkg, err error) {
 	st, ok := err.(*status.Status)
 	if !ok {
-		m.PkgHead.Meta["dora-status"] = strconv.Itoa(int(status.Unknown))
-		m.PkgHead.Meta["dora-message"] = status.Unknown.String()
+		m.Head.Meta["dora-status"] = strconv.Itoa(int(status.Unknown))
+		m.Head.Meta["dora-message"] = status.Unknown.String()
 		return
 	}
 
-	m.PkgHead.Meta["dora-status"] = strconv.Itoa(int(st.Code))
-	m.PkgHead.Meta["dora-message"] = st.Message
+	m.Head.Meta["dora-status"] = strconv.Itoa(int(st.Code))
+	m.Head.Meta["dora-message"] = st.Message
 }
 
 func (s *Server) getCodec(typ string) codec.Codec {
 	if typ == "" {
-		return codec.GetCodec(proto.Name)
+		return codec.GetCodec(protoCodec.Name)
 	}
 
 	c := codec.GetCodec(typ)
 	if c == nil {
-		return codec.GetCodec(proto.Name)
+		return codec.GetCodec(protoCodec.Name)
 	}
 
 	return c
@@ -312,42 +235,41 @@ type ServiceRegistrar interface {
 	RegisterService(sd *ServiceDesc, impl interface{})
 }
 
-//==============
-
 func (s *Server) RegisterService(sd *ServiceDesc, impl interface{}) {
-	log.Debugf("RegisterService begin...")
+	log.Info("[dora] Register service.")
+
 	for k := range sd.Methods {
 		m := &sd.Methods[k]
 		s.methods[m.Name] = m
+		log.Infof("[dora] Register method: %-20s", m)
 	}
 
 	s.serverImpl = impl
-
-	log.Debug("RegisterService success")
 }
 
 func (s *Server) Stop() (err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if s.ln != nil {
-		err = s.ln.Close()
+	if s.listener != nil {
+		err = s.listener.Close()
 	}
-	for conn := range s.activeConnMap {
-		conn.Close()
-		delete(s.activeConnMap, conn)
+	for socket := range s.activeTransport {
+		socket.Close()
+		delete(s.activeTransport, socket)
 	}
 	s.closeDoneChanLocked()
+
+	log.Info("[dora] Stop server success")
 	return err
 }
 
 func (s *Server) closeDoneChanLocked() {
 	select {
-	case <-s.stopCh:
+	case <-s.ctx.Done():
 		// Already closed. Don't close again.
 	default:
 		// Safe to close here. We're the only closer, guarded
-		// by s.mu.RegisterName
-		close(s.stopCh)
+		s.cancel()
 	}
 }

@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package protocol;
+
+option go_package = "protocol";
+
+message Head{
+    int32 version = 1;
+    string serialize_type = 2;
+    uint64 seq = 3;
+    string method = 4;
+    map<string, string> meta =5;
+}
+
+message Pkg {
+    Head head = 1;
+    bytes payload = 2;
+}

@@ -2,17 +2,26 @@ package client
 
 import (
 	"context"
-	"github.com/poonman/entry-task/dora/log"
+	"github.com/poonman/entry-task/dora/misc/log"
 	"github.com/poonman/entry-task/dora/status"
+	"github.com/poonman/entry-task/dora/transport"
+	"github.com/poonman/entry-task/dora/transport/nap"
+	"io"
 	"sync"
-	"sync/atomic"
+	"time"
 )
 
 type Client struct {
-	mu      sync.RWMutex
-	connMap map[uint64]*Connection
+	// ctx is a parent context that manage all transport lifecycle
+	ctx context.Context
+	cancel context.CancelFunc
 
-	connId uint64
+	mu         sync.RWMutex
+	dialer     transport.Dialer
+
+	// transport length is usually relative to the concurrency.
+	// Another way to implement transport pool is to use slice and load balanced by robin instead
+	transports map[transport.ClientTransport]struct{}
 
 	address string
 
@@ -20,53 +29,71 @@ type Client struct {
 }
 
 func NewClient(address string, opts ...Option) (c *Client) {
-	log.Info("[dora] NewClient begin...")
 
+	ctx, cancel := context.WithCancel(context.TODO())
 	c = &Client{
-		mu:      sync.RWMutex{},
-		connMap: make(map[uint64]*Connection),
-		address: address,
-		opts:    &Options{},
+		ctx:        ctx,
+		cancel:     cancel,
+		mu:         sync.RWMutex{},
+		dialer:     nil,
+		transports: make(map[transport.ClientTransport]struct{}),
+		address:    address,
+		opts:       &Options{},
 	}
 
 	for _, o := range opts {
 		o(c.opts)
 	}
 
-	log.Infof("[dora] NewClient success. address:[%s]", address)
+	c.dialer = nap.NewDialer(&nap.DialerOptions{
+		DialTimeout: c.opts.dialTimeout,
+		TlsConfig:   c.opts.tlsConfig,
+	})
+
+	log.Infof("[dora] New client success. address:[%s]", address)
 
 	return c
 }
 
 func (c *Client) Invoke(ctx context.Context, method string, in, out interface{}) (err error) {
 	var (
-		conn *Connection
+		t transport.ClientTransport
 	)
 
-	conn, err = c.getConn()
+	t, err = c.getTransport()
 	if err != nil {
 		return
 	}
 
-	defer c.releaseConn(conn)
+	defer func() {
+		if err == io.EOF {
+			log.Errorf("[dora] Server has closed transport. err:[%v]", err)
+			err = status.ErrUnavailable
+		} else {
+			c.releaseTransport(t)
+		}
+	}()
 
-	cs := NewStream(ctx, method, conn)
+	var cancel context.CancelFunc
+	// timeout to cancel this call
+	ctx, cancel = context.WithTimeout(ctx, 5*time.Second)
 
-	err = cs.SendMsg(in)
+	call := NewCall(ctx, cancel, method, t)
+
+	err = call.SendMsg(in)
 	if err != nil {
-
 		return
 	}
 
-	return cs.RecvMsg(out)
+	return call.RecvMsg(out)
 }
 
-func (c *Client) getConn() (conn *Connection, err error) {
+func (c *Client) getTransport() (t transport.ClientTransport, err error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if len(c.connMap) == 0 {
-		conn, err = c.newConn()
+	if len(c.transports) == 0 {
+		t, err = c.newTransport()
 		if err != nil {
 			return
 		}
@@ -74,44 +101,62 @@ func (c *Client) getConn() (conn *Connection, err error) {
 		return
 	}
 
-	for _, v := range c.connMap {
-		conn = v
+	for t_ := range c.transports {
+		t = t_
 		break
 	}
 
-	if conn == nil {
+	if t == nil {
 		err = status.New(status.Unavailable, "connection is nil")
 		return
 	}
 
-	delete(c.connMap, conn.id)
+	delete(c.transports, t)
 
 	return
 }
 
-func (c *Client) releaseConn(conn *Connection) {
+func (c *Client) deleteTransport(t transport.ClientTransport) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if len(c.connMap) > c.opts.connSize {
+	delete(c.transports, t)
+}
+
+func (c *Client) releaseTransport(t transport.ClientTransport) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if len(c.transports) > c.opts.connSize {
 		// todo: conn.Close()
-		// do not add to connMap
+		// do not add to transports
 		return
 	}
 
-	c.connMap[conn.id] = conn
+	c.transports[t] = struct{}{}
+
 }
 
-func (c *Client) newConn() (conn *Connection, err error) {
+func (c *Client) newTransport() (t transport.ClientTransport, err error) {
 
-	conn, err = NewConnection(c.address, c.opts)
+	t, err = c.dialer.Dial(c.ctx, c.address)
 	if err != nil {
 		return
 	}
 
-	conn.id = atomic.AddUint64(&c.connId, 1)
-
-	// todo: heartbeat
+	go func() {
+		select {
+		case <- c.ctx.Done():
+			return
+		case err := <- t.Error():
+			c.deleteTransport(t)
+			log.Infof("[dora] Client transport closed. err:[%v]", err)
+		}
+	}()
 
 	return
+}
+
+func (c *Client) Stop() {
+	c.cancel()
 }

@@ -71,6 +71,7 @@ const (
 	Unknown             Code = 7
 	Unavailable         Code = 8
 	InternalServerError Code = 9
+	OutOfRange          Code = 10
 	Max                 Code = 20
 )
 
@@ -85,6 +86,7 @@ var code2Str = map[Code]string{
 	Unknown:             "Unknown",
 	Unavailable:         "Unavailable",
 	InternalServerError: "InternalServerError",
+	OutOfRange:          "OutOfRange",
 }
 
 func (c Code) String() string {
@@ -106,4 +108,5 @@ var (
 	ErrUnknown             = New(Unknown, "Unknown")
 	ErrUnavailable         = New(Unavailable, "Unavailable")
 	ErrInternalServerError = New(InternalServerError, "InternalServerError")
+	ErrOutOfRange          = New(OutOfRange, "OutOfRange")
 )

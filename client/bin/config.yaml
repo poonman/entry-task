@@ -1,16 +1,7 @@
 server:
   address: 127.0.0.1:443
-  maxActiveConn: 100
+  maxActiveConn: 10
   enableTls: true
 
-benchmark:
-  concurrency: 12
-  requestNumPerConcurrency: 1000
-
-cmd:
-  commands:
-    - benchmark
-#    - login
-#    - write
-#    - read
-  username: "1"
+log:
+  level: INFO

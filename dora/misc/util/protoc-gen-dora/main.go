@@ -29,17 +29,17 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// protoc-gen-micro is a plugin for the Google protocol buffer compiler to generate
+// protoc-gen-dora is a plugin for the Google protocol buffer compiler to generate
 // Go code.  Run it by building this program and putting it in your path with
 // the name
-// 	protoc-gen-micro
-// That word 'micro' at the end becomes part of the option string set for the
+// 	protoc-gen-dora
+// That word 'dora' at the end becomes part of the option string set for the
 // protocol compiler, so once the protocol compiler (protoc) is installed
 // you can run
-// 	protoc --micro_out=output_directory --go_out=output_directory input_directory/file.proto
-// to generate go-micro code for the protocol defined by file.proto.
+// 	protoc --dora_out=output_directory --go_out=output_directory input_directory/file.proto
+// to generate go-dora code for the protocol defined by file.proto.
 // With that input, the output will be written to
-// 	output_directory/file.micro.go
+// 	output_directory/file.dora.go
 //
 // The generated code is documented in the package comment for
 // the library.
@@ -52,9 +52,9 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/poonman/entry-task/dora/misc/util/protoc-gen-dora/generator"
 	_ "github.com/poonman/entry-task/dora/misc/util/protoc-gen-dora/plugin/dora"
+	"github.com/golang/protobuf/proto"
 )
 
 func main() {

@@ -3,6 +3,7 @@ package limiter
 import (
 	"github.com/orca-zhang/lrucache"
 	"github.com/poonman/entry-task/server/domain/aggr/ratelimiter"
+	"github.com/poonman/entry-task/server/infra/config"
 )
 
 type repo struct {
@@ -23,9 +24,9 @@ func (r *repo) Save(lim *ratelimiter.RateLimiter) {
 	r.cache.Put(lim.Username, lim)
 }
 
-func NewRepo() ratelimiter.Repo {
+func NewRepo(conf *config.Config) ratelimiter.Repo {
 	r := &repo{
-		cache: lrucache.New(10000),
+		cache: lrucache.New(conf.RateLimiterRepoConfig.Capacity),
 	}
 
 	return r

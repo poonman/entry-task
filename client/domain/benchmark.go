@@ -1,67 +1,70 @@
 package domain
 
 import (
-	"github.com/poonman/entry-task/client/domain/aggr/stat"
+	"github.com/poonman/entry-task/client/domain/aggr/benchmark"
 	"github.com/poonman/entry-task/client/domain/aggr/user"
-	"github.com/poonman/entry-task/dora/log"
+	"github.com/poonman/entry-task/dora/misc/log"
 	"strconv"
 	"sync"
 	"time"
 )
 
-func (s *Service) BenchmarkRead() {
+func (s *Service) Benchmark(bm *benchmark.Benchmark, users []*user.User) {
 
 	var (
 		wg sync.WaitGroup
 	)
 
-	wg.Add(s.conf.BenchmarkConfig.Concurrency)
+	wg.Add(bm.Concurrency)
 
-	stats := make([]*stat.Stat, s.conf.BenchmarkConfig.Concurrency*s.conf.BenchmarkConfig.RequestNumPerConcurrency)
-
-	u := &user.User{
-		Name:     "1",
-		Password: "1",
-		Token:    "",
+	for _, u := range users {
+		err := s.Login(u)
+		if err != nil {
+			log.Errorf("failed to login. err:[%v]", err)
+			return
+		}
 	}
 
-	err := s.Login(u)
-	if err != nil {
-		log.Errorf("failed to login. err:[%v]", err)
-		return
-	}
+	log.Info("login success.")
 
-	for i := 0; i < s.conf.BenchmarkConfig.Concurrency; i++ {
+	startAt := time.Now()
+	level := log.GetLevel()
+	// set log level FATAL before benchmark
+	log.SetLevel(log.FATAL)
 
+	for i := 0; i < bm.Concurrency; i++ {
+		u := users[i]
 		go func(no int, u *user.User) {
-			var tmp []*stat.Stat
-
-			if no == s.conf.BenchmarkConfig.Concurrency {
-				tmp = stats[no*s.conf.BenchmarkConfig.Concurrency:]
-			} else {
-				tmp = stats[no*s.conf.BenchmarkConfig.RequestNumPerConcurrency : (no+1)*s.conf.BenchmarkConfig.RequestNumPerConcurrency]
-			}
-			s.RequestRead(u, no, tmp)
+			s.request(u, bm, no)
 			wg.Done()
 		}(i, u)
 	}
 
 	wg.Wait()
 
-	rep := &stat.Report{
-		Concurrency: s.conf.BenchmarkConfig.Concurrency,
-	}
+	bm.Duration.Duration = time.Since(startAt)
 
-	rep.Statistic(stats)
+	log.SetLevel(level)
 
-	log.Infof("report:[%s]", rep)
+	bm.Statistic()
+
+	log.Infof("Benchmark Report:[%s]", bm)
 }
 
-func (s *Service) RequestRead(u *user.User, concurrencyNo int, stats []*stat.Stat) {
+func (s *Service) request(u *user.User, bm *benchmark.Benchmark, no int) {
 
-	for i := 1; i <= s.conf.BenchmarkConfig.RequestNumPerConcurrency; i++ {
+	var stats []*benchmark.Stat
+
+	if no == bm.Concurrency {
+		stats = bm.Stats[no*bm.Requests:]
+	} else {
+		stats = bm.Stats[no*bm.Requests : (no+1)*bm.Requests]
+	}
+
+	var err error
+	for i := 1; i <= bm.Requests; i++ {
 		if u == nil {
-			tmp := strconv.Itoa(concurrencyNo*1000 + i)
+			tmp := strconv.Itoa(no*1000 + i)
 			u = &user.User{
 				Name:     tmp,
 				Password: tmp,
@@ -71,18 +74,23 @@ func (s *Service) RequestRead(u *user.User, concurrencyNo int, stats []*stat.Sta
 			_ = s.Login(u)
 		}
 
-		st := &stat.Stat{}
+		st := &benchmark.Stat{}
 		stats[i-1] = st
 
 		before := time.Now()
-		_, err := s.kvGateway.Get(u, s.keys[0])
-		rt := time.Now().Sub(before)
+		if bm.Method == "read" {
+			_, err = s.kvGateway.Get(u, bm.Key)
+		} else if bm.Method == "write" {
+			err = s.kvGateway.Set(u, bm.Key, bm.Value)
+		}
+
+		st.RT = time.Since(before)
+
 		if err != nil {
 			st.Success = false
 		} else {
 			st.Success = true
 		}
 
-		st.RT = rt
 	}
 }

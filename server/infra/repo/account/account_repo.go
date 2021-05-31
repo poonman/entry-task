@@ -3,7 +3,7 @@ package account
 import (
 	"context"
 	"database/sql"
-	"github.com/poonman/entry-task/dora/log"
+	"github.com/poonman/entry-task/dora/misc/log"
 	"github.com/poonman/entry-task/dora/status"
 	"github.com/poonman/entry-task/server/domain/aggr/account"
 	"github.com/poonman/entry-task/server/infra/config"
@@ -19,7 +19,7 @@ func (r *repo) Get(ctx context.Context, username string) (a *account.Account, er
 	a = &account.Account{}
 	row := r.db.QueryRowContext(ctx, "select * from account where username=?", username)
 	if err = row.Scan(&a.Id, &a.Username, &a.Password); err != nil {
-		err = status.New(status.InternalServerError, "query account error")
+		err = status.New(status.InternalServerError, "query account error. "+err.Error())
 		return
 	}
 

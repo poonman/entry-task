@@ -32,6 +32,10 @@ type MethodDesc struct {
 	Handler MethodHandler
 }
 
+func (m *MethodDesc) String() string {
+	return m.Name
+}
+
 type ServiceDesc struct {
 	Methods []MethodDesc
 }

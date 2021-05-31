@@ -1,7 +1,7 @@
 package helper
 
 import (
-	"github.com/poonman/entry-task/dora/log"
+	"github.com/poonman/entry-task/dora/misc/log"
 	"go.uber.org/dig"
 )
 

@@ -2,7 +2,6 @@ package metadata
 
 import (
 	"context"
-	"fmt"
 )
 
 type mdIncomingKey struct{}
@@ -16,24 +15,6 @@ func NewOutgoingContext(ctx context.Context, md MD) context.Context {
 
 func NewIncomingContext(ctx context.Context, md MD) context.Context {
 	return context.WithValue(ctx, mdIncomingKey{}, md)
-}
-
-func AppendToOutgoingContext(ctx context.Context, kv ...string) context.Context {
-	if len(kv)%2 == 1 {
-		panic(fmt.Sprintf("metadata: AppendToOutgoingContext got an odd number of input pairs for metadata: %d", len(kv)))
-	}
-	md, _ := ctx.Value(mdOutgoingKey{}).(MD)
-	var k string
-	for i, v := range kv {
-		if i%2 == 0 {
-			k = v
-			continue
-		}
-
-		md[k] = v
-	}
-
-	return context.WithValue(ctx, mdOutgoingKey{}, md)
 }
 
 func FromOutgoingContext(ctx context.Context) (md MD, ok bool) {

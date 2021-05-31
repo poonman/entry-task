@@ -3,8 +3,8 @@ package hcl
 import (
 	"encoding/json"
 
-	"github.com/hashicorp/hcl"
 	"github.com/poonman/entry-task/dora/misc/lion/encoder"
+	"github.com/hashicorp/hcl"
 )
 
 type hclEncoder struct{}

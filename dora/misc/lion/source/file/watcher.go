@@ -3,8 +3,8 @@ package file
 import (
 	"errors"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/poonman/entry-task/dora/misc/lion/source"
+	"github.com/fsnotify/fsnotify"
 )
 
 type watcher struct {

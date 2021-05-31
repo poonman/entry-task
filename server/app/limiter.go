@@ -5,7 +5,7 @@ import (
 )
 
 func (s *Service) AllowRead(ctx context.Context, username string) bool {
-	lim := s.factory.TryGetOrBuildRateLimiter(ctx, username)
+	lim := s.factory.TryGetRateLimiter(ctx, username)
 
 	if lim == nil {
 		return false
@@ -15,11 +15,11 @@ func (s *Service) AllowRead(ctx context.Context, username string) bool {
 }
 
 func (s *Service) AllowWrite(ctx context.Context, username string) bool {
-	lim := s.factory.TryGetOrBuildRateLimiter(ctx, username)
+	lim := s.factory.TryGetRateLimiter(ctx, username)
 
 	if lim == nil {
 		return false
 	}
 
-	return lim.AllowRead()
+	return lim.AllowWrite()
 }

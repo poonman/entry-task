@@ -1,8 +1,8 @@
 package yaml
 
 import (
-	"github.com/ghodss/yaml"
 	"github.com/poonman/entry-task/dora/misc/lion/encoder"
+	"github.com/ghodss/yaml"
 )
 
 type yamlEncoder struct{}

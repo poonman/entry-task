@@ -17,10 +17,8 @@ var (
 	ErrNoMetadataFound = status.New(status.BadRequest, "no metadata found")
 	ErrNoUsernameFound = status.New(status.BadRequest, "no username found")
 	ErrNoTokenFound    = status.New(status.BadRequest, "no token found")
-)
-
-var (
-	MaxAccessTimePerSecond int64 = 100000
+	ErrNotAllowRead    = status.New(status.Unavailable, "not allow read due to rate limit")
+	ErrNotAllowWrite   = status.New(status.Unavailable, "not allow write due to rate limit")
 )
 
 func (i *Interceptor) Do(ctx context.Context, in, out interface{}, serverInfo *server.InterceptorServerInfo, handler server.Handler) (err error) {
@@ -39,6 +37,7 @@ func (i *Interceptor) Do(ctx context.Context, in, out interface{}, serverInfo *s
 }
 
 func (i *Interceptor) Auth(ctx context.Context, serverInfo *server.InterceptorServerInfo) (_ context.Context, err error) {
+
 	if serverInfo.Method == "ReadSecureMessage" || serverInfo.Method == "WriteSecureMessage" {
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
@@ -90,13 +89,13 @@ func (i *Interceptor) Limit(ctx context.Context, serverInfo *server.InterceptorS
 		if strings.Compare(serverInfo.Method, "ReadSecureMessage") == 0 {
 			allow := i.app.AllowRead(ctx, username)
 			if !allow {
-				err = status.ErrUnavailable
+				err = ErrNotAllowRead
 				return
 			}
 		} else if strings.Compare(serverInfo.Method, "WriteSecureMessage") == 0 {
 			allow := i.app.AllowWrite(ctx, username)
 			if !allow {
-				err = status.ErrUnavailable
+				err = ErrNotAllowWrite
 				return
 			}
 		}

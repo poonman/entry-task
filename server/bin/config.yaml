@@ -5,6 +5,9 @@ server:
   clientPemFilepath: client.pem
   enableTls: true
 
+log:
+  level: INFO
+
 mysql:
   sourceName: root:root@tcp(127.0.0.1:3306)/dora_server
   maxOpenConn: 100
@@ -14,10 +17,15 @@ mysql:
 redis:
   address: 127.0.0.1:6379
   password: "123456"
+  maxIdle: 20
+  maxActive: 500
 
 quotaRepo:
-  useMySQL: false
-  fixedQuota: 100000
+  useMySQL: true
+  fixedQuota: 0
 
 storeRepo:
   useRedis: true
+
+rateLimiter:
+  capacity: 10000

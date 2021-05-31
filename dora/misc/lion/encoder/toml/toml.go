@@ -3,8 +3,8 @@ package toml
 import (
 	"bytes"
 
-	"github.com/BurntSushi/toml"
 	"github.com/poonman/entry-task/dora/misc/lion/encoder"
+	"github.com/BurntSushi/toml"
 )
 
 type tomlEncoder struct{}

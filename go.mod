@@ -17,6 +17,7 @@ require (
 	github.com/orca-zhang/lrucache v0.0.0-20201015073116-59b396a7ecf0
 	github.com/philchia/agollo v2.1.0+incompatible
 	github.com/satori/go.uuid v1.2.0
+	github.com/spf13/pflag v1.0.5
 	go.uber.org/dig v1.10.0
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
 )
